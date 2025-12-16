@@ -105,21 +105,48 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--md-sys-color-background);
+  --color-foreground: var(--md-sys-color-on-background);
+  --color-surface: var(--md-sys-color-surface);
+  --color-surface-foreground: var(--md-sys-color-on-surface);
+  --color-muted: var(--md-sys-color-surface-variant);
+  --color-muted-foreground: var(--md-sys-color-on-surface-variant);
+  --color-border: var(--md-sys-color-outline);
+
+  --color-primary: var(--md-sys-color-primary);
+  --color-primary-foreground: var(--md-sys-color-on-primary);
+  --color-primary-container: var(--md-sys-color-primary-container);
+  --color-primary-container-foreground: var(--md-sys-color-on-primary-container);
+
+  --color-secondary: var(--md-sys-color-secondary);
+  --color-secondary-foreground: var(--md-sys-color-on-secondary);
+  --color-secondary-container: var(--md-sys-color-secondary-container);
+  --color-secondary-container-foreground: var(--md-sys-color-on-secondary-container);
+
+  --color-tertiary: var(--md-sys-color-tertiary);
+  --color-tertiary-foreground: var(--md-sys-color-on-tertiary);
+  --color-tertiary-container: var(--md-sys-color-tertiary-container);
+  --color-tertiary-container-foreground: var(--md-sys-color-on-tertiary-container);
+
+  --color-error: var(--md-sys-color-error);
+  --color-error-foreground: var(--md-sys-color-on-error);
+  --color-error-container: var(--md-sys-color-error-container);
+  --color-error-container-foreground: var(--md-sys-color-on-error-container);
+
+  --color-ring: var(--md-sys-color-outline);
+  --color-input: var(--md-sys-color-surface-container);
+  --color-card: var(--md-sys-color-surface-container-high);
+  --color-card-foreground: var(--md-sys-color-on-surface);
+  --color-inverse-surface: var(--md-sys-color-inverse-surface);
+  --color-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
+  --color-inverse-primary: var(--md-sys-color-inverse-primary);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
