@@ -1,0 +1,45 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # SERVICE 1: The Database (Postgres + PostGIS)
+  db:
+    image: postgis/postgis:15-3.3-alpine  # Postgres with PostGIS extension
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: medlocator_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+
+  # SERVICE 2: The Backend (Express)
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app       
+      - /app/node_modules    
+    depends_on:
+      - db
+    environment:
+      # Use the SERVICE NAME 'db' as the host, not 'localhost'
+      DATABASE_URL: postgres://myuser:mypassword@db:5432/medlocator_db
+      PORT: 5000
+
+  # SERVICE 3: The Frontend (Next.js)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app      
+      - /app/node_modules
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+
+volumes:
+  postgres_data:
