@@ -14,7 +14,7 @@ const HeroSection = () => {
                 <h1 className="text-5xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
                 Trouvez les <br />
                 <span className="text-primary">
-                    établissements <br />
+                    Établissements <br />
                     médicaux
                 </span>{" "}
                 les plus <br />
