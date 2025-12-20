@@ -23,7 +23,8 @@ type HospitalFormValues = {
 };
 
 
-// --- SUB-COMPONENT: SEARCH BAR ---
+
+// Handles location search in the map
 function LocationSearch({ onSelectLocation }: { onSelectLocation: (location: { lat: number; lng: number; label: string }) => void }) {
   const [query, setQuery] = useState('');
   const provider = new OpenStreetMapProvider();
@@ -58,7 +59,8 @@ function LocationSearch({ onSelectLocation }: { onSelectLocation: (location: { l
   );
 }
 
-// --- SUB-COMPONENT: CLICK HANDLER ---
+
+// Captures map click events and returns coordinates to the form
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
@@ -68,7 +70,8 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
   return null;
 }
 
-// --- SUB-COMPONENT: MAP VIEW UPDATER ---
+
+// Updates map center view when coordinates change
 function ChangeView({ center }: { center: [number, number] }) {
   const map = useMap();
   map.setView(center, map.getZoom());
@@ -81,11 +84,12 @@ export default function AddHospitalForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([33.5731, -7.5898]);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null);
-
+  
+  // Form setup with validation
   const {
     register,
     handleSubmit,
-    setValue, // <--- CRITICAL: Needed to manually update lat/lng
+    setValue,
     watch,
     formState: { errors },
   } = useForm<HospitalFormValues>({
@@ -93,7 +97,7 @@ export default function AddHospitalForm() {
     defaultValues: { type: "Générale" },
   });
 
-  // Bridge: Updates both the visual marker AND the form data
+  // Synchronizes marker position with form coordinates
   const updateLocation = (lat: number, lng: number) => {
     setMarkerPosition([lat, lng]);
     setMapCenter([lat, lng]);
@@ -104,6 +108,7 @@ export default function AddHospitalForm() {
   const lat = watch("lat");
   const lng = watch("lng");
 
+  // Submits hospital data to backend API
   const onSubmit = async (data: HospitalFormValues) => {
     setIsSubmitting(true);
     try {
