@@ -1,22 +1,22 @@
-# frontend/Dockerfile
+# backend/Dockerfile
 
 # NodeJs based image
-FROM node:18-alpine
+FROM node:25-alpine
 
 #the working directory inside the container
 WORKDIR /app
 
-# Copy package files first (to cache dependencies)
+#Copy package files first (to cache dependencies)
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest frontend code
+# Copy the rest backend code
 COPY . .
-0
-# Expose the port React app runs on
-EXPOSE 3000
+
+# Expose the port  Express app runs on
+EXPOSE 5000
 
 # The command to start the app
 CMD ["npm", "run", "dev"]
