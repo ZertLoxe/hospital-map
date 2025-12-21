@@ -9,6 +9,10 @@ export const hospitalSchema = z.object({
             message: "Veuillez sélectionner un type valide",
     }),
 
+    status: z.enum(["active", "en_construction", "en_étude"], {
+      message: "Veuillez sélectionner un statut valide",
+    }),
+
     lat: z.number({
     message: "Veuillez cliquer sur la carte pour choisir un emplacement",
   }),

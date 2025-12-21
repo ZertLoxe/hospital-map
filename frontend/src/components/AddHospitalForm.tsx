@@ -18,6 +18,7 @@ import { hospitalSchema } from "@/lib/validations";
 type HospitalFormValues = {
   name: string;
   type: "Générale" | "Spécialisée";
+  status: "active" | "en_construction" | "en_étude";
   lat: number;
   lng: number;
 };
@@ -94,7 +95,7 @@ export default function AddHospitalForm() {
     formState: { errors },
   } = useForm<HospitalFormValues>({
     resolver: zodResolver(hospitalSchema),
-    defaultValues: { type: "Générale" },
+    defaultValues: { type: "Générale"},
   });
 
   // Synchronizes marker position with form coordinates
@@ -199,12 +200,29 @@ export default function AddHospitalForm() {
               <select
                 {...register("type")}
                 className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
+              required
               >
+                <option value="" disabled >Choisir une option</option>
                 <option value="Générale">Hôpital Général (Toutes spécialités)</option>
                 <option value="Spécialisée">Clinique Spécialisée</option>
               </select>
             </div>
 
+            {/* STATUS */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Statut</label>
+              <select
+                {...register("status")}
+                className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
+              required
+              >
+                <option value="" disabled >Choisir une option</option>
+                <option value="active">Active</option>
+                <option value="en_construction">En Construction</option>
+                <option value="en_étude">En Étude</option>
+              </select>
+            </div>    
+              
             {/* COORDINATES DISPLAY */}
             <div className={`p-6 rounded-2xl border-2 transition-all ${lat ? 'bg-primary/5 border-primary/20' : 'bg-gray-50 border-dashed border-gray-300'}`}>
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Coordonnées Géographiques</span>
