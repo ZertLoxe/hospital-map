@@ -15,7 +15,7 @@ export default function Navbar() {
 
   return (
     
-    <nav className="flex items-center justify-between p-5 bg-surface text-on-surface ">
+    <nav className="flex items-center justify-between p-3 bg-surface text-on-surface ">
       {/* Logo or Brand Name */}
       <div className="text-3xl font-bold p-2 px-8">
         <Link href="/">MedLocator</Link>
