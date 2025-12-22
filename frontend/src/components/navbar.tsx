@@ -15,9 +15,17 @@ export default function Navbar() {
 
   return (
     
-    <nav className="flex items-center justify-between p-3 bg-surface text-on-surface ">
+    <nav className="flex items-center justify-between p-3 bg-surface text-on-surface shadow-lg">
       {/* Logo or Brand Name */}
-      <div className="text-3xl font-bold p-2 px-8">
+      <div className="flex text-3xl font-bold p-2 px-8">
+        <Image
+          className="cursor-pointer"
+          src="/hospital.svg"
+          alt="MedLocator Logo"
+          width={38}
+          height={38}
+          priority
+        />
         <Link href="/">MedLocator</Link>
       </div>
 
