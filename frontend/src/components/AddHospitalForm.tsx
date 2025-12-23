@@ -166,15 +166,11 @@ export default function AddHospitalForm() {
               <TypeAnimation
                 sequence={[
                   'Ajouter un Nouvel Hôpital',
-                  2000,
-                  'Ajouter un Nouvel Hôpital',
-                  2000,
-                  'Ajouter un Nouvel Hôpital',
-                  2000,
                 ]}
                 wrapper="span"
                 speed={50}
-                repeat={Infinity}
+                repeat={1}
+                cursor={false}
               />
             </h1>
             <p className="text-gray-500 mt-2 text-sm italic">

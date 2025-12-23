@@ -39,6 +39,18 @@ services:
       - /app/node_modules
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:5000
-
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_medlocator
+    restart: always
+    environment:
+      # These are the credentials to log into the pgAdmin WEBSITE
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"  # We will access it at localhost:8080
+    depends_on:
+      - db
 volumes:
   postgres_data:
