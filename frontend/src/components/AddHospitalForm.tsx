@@ -113,7 +113,7 @@ export default function AddHospitalForm() {
   const onSubmit = async (data: HospitalFormValues) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("http://localhost:5000/api/hospitals", {
+      const response = await fetch("http://localhost:5000/api/add/hospitals/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
