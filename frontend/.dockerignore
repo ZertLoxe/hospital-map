@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Test files
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+docs
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+secrets/

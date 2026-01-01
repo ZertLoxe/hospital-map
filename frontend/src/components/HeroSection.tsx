@@ -5,7 +5,6 @@ import Link from "next/link";
 
 const HeroSection = () => {
     return(
-        <>
         <section className=" w-full lg:w-[90%] px-4  min-h-[calc(100dvh-80px)] grid grid-cols-1 sm:grid-cols-2  items-center">
 
             {/* LEFT COLUMN: Text Content */}
@@ -51,10 +50,6 @@ const HeroSection = () => {
                 />
             </div>
         </section>
-
-
-
-</>
     )
         
     

@@ -1,0 +1,58 @@
+import { calculateDistance, getPanelWidthClass } from './utils';
+
+describe('calculateDistance', () => {
+  it('should return 0 for the same point', () => {
+    const distance = calculateDistance(33.5731, -7.5898, 33.5731, -7.5898);
+    expect(distance).toBe(0);
+  });
+
+  it('should calculate distance between Casablanca and Rabat correctly', () => {
+    // Casablanca: 33.5731, -7.5898
+    // Rabat: 34.0209, -6.8416
+    const distance = calculateDistance(33.5731, -7.5898, 34.0209, -6.8416);
+    // Expected distance is approximately 85-90 km
+    expect(distance).toBeGreaterThan(80);
+    expect(distance).toBeLessThan(100);
+  });
+
+  it('should calculate distance between two nearby points', () => {
+    // Two points about 1km apart
+    const distance = calculateDistance(33.5731, -7.5898, 33.5821, -7.5898);
+    expect(distance).toBeGreaterThan(0.5);
+    expect(distance).toBeLessThan(2);
+  });
+
+  it('should be symmetric (same distance A->B as B->A)', () => {
+    const distanceAB = calculateDistance(33.5731, -7.5898, 34.0209, -6.8416);
+    const distanceBA = calculateDistance(34.0209, -6.8416, 33.5731, -7.5898);
+    expect(distanceAB).toBeCloseTo(distanceBA, 10);
+  });
+
+  it('should handle negative coordinates', () => {
+    const distance = calculateDistance(-33.9249, 18.4241, -34.0522, 18.4686);
+    expect(distance).toBeGreaterThan(0);
+    expect(distance).toBeLessThan(20);
+  });
+});
+
+describe('getPanelWidthClass', () => {
+  it('should return hidden class when panel is closed', () => {
+    const result = getPanelWidthClass(false, false);
+    expect(result).toBe('w-0 opacity-0 overflow-hidden');
+  });
+
+  it('should return hidden class when panel is closed even if expanded', () => {
+    const result = getPanelWidthClass(false, true);
+    expect(result).toBe('w-0 opacity-0 overflow-hidden');
+  });
+
+  it('should return w-96 when panel is open but not expanded', () => {
+    const result = getPanelWidthClass(true, false);
+    expect(result).toBe('w-96');
+  });
+
+  it('should return w-full when panel is open and expanded', () => {
+    const result = getPanelWidthClass(true, true);
+    expect(result).toBe('w-full');
+  });
+});

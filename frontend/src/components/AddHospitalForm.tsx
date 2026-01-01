@@ -26,7 +26,7 @@ type HospitalFormValues = {
 
 
 // Handles location search in the map
-function LocationSearch({ onSelectLocation }: { onSelectLocation: (location: { lat: number; lng: number; label: string }) => void }) {
+function LocationSearch({ onSelectLocation }: Readonly<{ onSelectLocation: (location: { lat: number; lng: number; label: string }) => void }>) {
   const [query, setQuery] = useState('');
   const provider = new OpenStreetMapProvider();
 
@@ -95,7 +95,7 @@ export default function AddHospitalForm() {
     formState: { errors },
   } = useForm<HospitalFormValues>({
     resolver: zodResolver(hospitalSchema),
-    defaultValues: { type: "Générale"},
+    defaultValues: { type: "Générale", status: "active" },
   });
 
   // Synchronizes marker position with form coordinates
@@ -113,18 +113,23 @@ export default function AddHospitalForm() {
   const onSubmit = async (data: HospitalFormValues) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("http://localhost:5000/api/hospitals", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const response = await fetch(`${apiUrl}/api/hospitals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Échec de l'enregistrement");
+      }
       
       toast.success("Hôpital enregistré !");
       router.push("/search");
-    } catch {
-      toast.error("Erreur lors de l'enregistrement.");
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error(error instanceof Error ? error.message : "Erreur lors de l'enregistrement.");
     } finally {
       setIsSubmitting(false);
     }
@@ -185,8 +190,9 @@ export default function AddHospitalForm() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 flex-grow">
             {/* NAME */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Nom d&apos;Hôpital</label>
+              <label htmlFor="name" className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Nom d&apos;Hôpital</label>
               <input
+                id="name"
                 {...register("name")}
                 className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                 placeholder="Ex: Hôpital Central de Casablanca"
@@ -196,8 +202,9 @@ export default function AddHospitalForm() {
 
             {/* TYPE */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Spécialisation</label>
+              <label htmlFor="type" className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Spécialisation</label>
               <select
+                id="type"
                 {...register("type")}
                 className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
               required
@@ -210,8 +217,9 @@ export default function AddHospitalForm() {
 
             {/* STATUS */}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Statut</label>
+              <label htmlFor="status" className="text-sm font-bold text-foreground/80 uppercase tracking-wider">Statut</label>
               <select
+                id="status"
                 {...register("status")}
                 className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
               required
