@@ -9,7 +9,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'myuser',
   password: process.env.DB_PASSWORD || 'mypassword',
   database: process.env.DB_NAME || 'medlocator_db',
-  synchronize: true, // Auto-create tables (disable in production)
+  synchronize: true,
   logging: false,
   entities: [Hospital],
 });
