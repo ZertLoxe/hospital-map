@@ -1,8 +1,8 @@
 # docker-compose.yml
-version: '3.8'
+# version: '3.8'
 
 services:
-  # SERVICE 2: The Backend (Express)
+  # SERVICE 1: The Backend (Express)
   backend:
     build: ./backend
     container_name: backend
@@ -12,10 +12,10 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
-      DATABASE_URL: postgres://Username:YourPwd@pg-3b020c22-mostaf1111-57d8.k.aivencloud.com:22860/Medlocation?sslmode=require
+      DATABASE_URL: ${DATABASE_URL}
       PORT: 5000
       
-  # SERVICE 3: The Frontend (Next.js)
+  # SERVICE 2: The Frontend (Next.js)
   frontend:
     build: ./frontend
     ports:
@@ -24,7 +24,4 @@ services:
       - ./frontend:/app      
       - /app/node_modules
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5000
-
-volumes:
-  postgres_data:
+      NEXT_PUBLIC_API_URL: http://backend:5000
