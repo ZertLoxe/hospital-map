@@ -47,7 +47,7 @@ function LocationSearch({ onSelectLocation }: { onSelectLocation: (location: { l
   };
 
   return (
-    <form onSubmit={handleSearch} className="absolute top-4 left-12 bg-white rounded-lg shadow-xl z-[1000] border border-gray-300 overflow-hidden flex">
+    <form onSubmit={handleSearch} className="absolute top-4 left-12 bg-white rounded-lg shadow-xl z-1000 border border-gray-300 overflow-hidden flex">
       <input
         type="text"
         value={query}
