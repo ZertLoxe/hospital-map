@@ -4,7 +4,7 @@
 
 # Node dependencies (ignore in both frontend and backend)
 node_modules/
-
+*.md
 # Environment files
 .env
 .env.*

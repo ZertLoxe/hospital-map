@@ -145,7 +145,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html,
 body {
+  height: 100vh;
+  overflow: hidden;
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: Arial, Helvetica, sans-serif;

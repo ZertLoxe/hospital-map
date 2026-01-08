@@ -9,7 +9,7 @@ export const hospitalSchema = z.object({
             message: "Veuillez sélectionner un type valide",
     }),
 
-    status: z.enum(["active", "en_construction", "en_étude"], {
+    status: z.enum(["Active", "En construction", "En étude"], {
       message: "Veuillez sélectionner un statut valide",
     }),
 
@@ -22,3 +22,5 @@ export const hospitalSchema = z.object({
   }),
    
 })
+
+export type inputHospital = z.infer<typeof hospitalSchema>

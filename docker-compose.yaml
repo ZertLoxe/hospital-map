@@ -1,61 +1,54 @@
-
-version: '3.8'
+# docker-compose.yml
+# version: '3.8'
 
 services:
-  # SERVICE 1: The Database (Postgres + PostGIS)
+  # SERVICE 1: PostgreSQL Database (simple, no external permissions needed)
   db:
-    image: postgis/postgis:15-3.3-alpine  
-    restart: always
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: medlocator_db
+    image: postgres:15-alpine
+    container_name: hospital-map-db
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: hospital_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data 
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hospital_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # SERVICE 2: The Backend (Express)
   backend:
     build: ./backend
+    container_name: backend
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/app:Z      
-      - /app/node_modules    
-    depends_on:
-      - db
+      - ./backend:/app:z
+      - /app/node_modules
     environment:
-      DATABASE_URL: postgres://myuser:mypassword@db:5432/medlocator_db
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/hospital_db
       PORT: 5000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: myuser
-      DB_PASSWORD: mypassword
-      DB_NAME: medlocator_db
-
+      NODE_ENV: development
+      
   # SERVICE 3: The Frontend (Next.js)
   frontend:
     build: ./frontend
+    depends_on:
+      - backend
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app:Z      
+      - ./frontend:/app:z
       - /app/node_modules
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5000
-      
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin_medlocator
-    restart: always
-    environment:
-      # These are the credentials to log into the pgAdmin WEBSITE
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "8080:80"  # We will access it at localhost:8080
-    depends_on:
-      - db
+      BACKEND_URL: http://backend:5000
+
 volumes:
   postgres_data:

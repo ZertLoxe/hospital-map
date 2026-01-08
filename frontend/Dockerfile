@@ -1,7 +1,7 @@
 # frontend/Dockerfile
 
 # NodeJs based image
-FROM node:20-alpine
+FROM node:25-alpine
 
 #the working directory inside the container
 WORKDIR /app

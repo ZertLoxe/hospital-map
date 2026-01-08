@@ -1,0 +1,95 @@
+{
+  "nav": {
+    "brand": "MedLocator"
+  },
+  "hero": {
+    "findThe": "Trouvez les",
+    "medicalFacilities": "Établissements Médicaux",
+    "nearYou": "Près de Vous",
+    "search": "Rechercher",
+    "addHospital": "Ajouter un Hôpital",
+    "imageAlt": "Bâtiment hospitalier moderne"
+  },
+  "search": {
+    "title": "Point de référence",
+    "placeholder": "Choisir un hôpital, clinique, centre de santé...",
+    "loading": "Chargement...",
+    "chooseHospital": "Choisir un hopital",
+    "noResults": "Aucun établissement trouvé",
+    "loadingFacilities": "Chargement des établissements...",
+    "selectFacility": "Sélectionnez un établissement comme point de départ",
+    "radius": "Rayon de recherche",
+    "facilityTypes": "Types d'établissements",
+    "allTypes": "Tous les types seront recherchés",
+    "typesSelected": "type(s) sélectionné(s)",
+    "searchButton": "Rechercher",
+    "searching": "Recherche en cours..."
+  },
+  "results": {
+    "title": "Résultats",
+    "expand": "Étendre",
+    "reduce": "Réduire",
+    "name": "Nom",
+    "type": "Type",
+    "distance": "Distance",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "hours": "Horaires",
+    "actions": "Actions",
+    "directions": "OBTENIR L'ITINÉRAIRE →",
+    "directionsShort": "Itinéraire",
+    "verify": "Vérifier",
+    "exportCSV": "Exporter CSV",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "of": "sur",
+    "noResults": "Lancez une recherche pour voir les établissements",
+    "phoneNotProvided": "Téléphone non renseigné",
+    "addressNotProvided": "Adresse non renseignée",
+    "unnamed": "Établissement médical sans nom"
+  },
+  "facilityTypes": {
+    "hospital": "Hopital",
+    "clinic": "Clinique privée",
+    "doctor": "Cabinet médical",
+    "pharmacy": "Pharmacie",
+    "laboratory": "Laboratoire"
+  },
+  "map": {
+    "referencePoint": "Point de référence",
+    "yourSearchPosition": "Votre position de recherche",
+    "getDirections": "Obtenir l'itinéraire",
+    "verifyOnOSM": "Vérifier sur OpenStreetMap"
+  },
+  "toast": {
+    "referencePoint": "Point de référence",
+    "searchInProgress": "Recherche en cours...",
+    "noFacilitiesFound": "Aucun établissement trouvé dans cette zone",
+    "facilitiesFound": "établissement(s) trouvé(s) sur OpenStreetMap",
+    "searchError": "Erreur lors de la recherche. Réessayez.",
+    "selectFacility": "Veuillez sélectionner un établissement comme point de référence",
+    "loadError": "Impossible de charger les établissements",
+    "hospitalSaved": "Hôpital enregistré !",
+    "saveError": "Erreur lors de l'enregistrement.",
+    "locationNotFound": "Emplacement non trouvé"
+  },
+  "addHospital": {
+    "title": "Ajouter un Nouvel Hôpital",
+    "subtitle": "Définissez la position stratégique de votre Hôpital.",
+    "searchOrClick": "Faites une recherche ou cliquez directement sur la carte",
+    "futureLocation": "Emplacement du futur hôpital",
+    "hospitalName": "Nom d'Hôpital",
+    "namePlaceholder": "Ex: Hôpital Central de Casablanca",
+    "specialization": "Spécialisation",
+    "chooseOption": "Choisir une option",
+    "general": "Hôpital Général (Toutes spécialités)",
+    "specialized": "Clinique Spécialisée",
+    "status": "Statut",
+    "active": "Active",
+    "underConstruction": "En Construction",
+    "underStudy": "En Étude",
+    "coordinates": "Coordonnées Géographiques",
+    "processing": "Traitement...",
+    "confirmLocation": "Confirmer l'Emplacement"
+  }
+}
