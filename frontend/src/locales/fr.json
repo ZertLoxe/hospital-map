@@ -48,6 +48,41 @@
     "addressNotProvided": "Adresse non renseignée",
     "unnamed": "Établissement médical sans nom"
   },
+  "edit": {
+    "title": "Modifier l'établissement",
+    "success": "Mise à jour réussie",
+    "error": "Erreur de mise à jour"
+  },
+  "delete": {
+    "confirm": "Êtes-vous sûr de vouloir supprimer cet établissement ?",
+    "success": "Suppression réussie",
+    "error": "Erreur de suppression"
+  },
+  "details": {
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "general": "Générale",
+    "specialized": "Spécialisée",
+    "university": "Universitaire",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "maintenance": "En maintenance",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "info": "Informations",
+    "created": "Créé le",
+    "location": "Localisation",
+    "back": "Retour à la carte"
+  },
+  "form": {
+    "hospitalName": "Nom de l'établissement",
+    "type": "Type",
+    "status": "Statut",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "latitude": "Latitude",
+    "longitude": "Longitude"
+  },
   "facilityTypes": {
     "hospital": "Hopital",
     "clinic": "Clinique privée",
@@ -56,8 +91,9 @@
     "laboratory": "Laboratoire"
   },
   "map": {
-    "referencePoint": "Point de référence",
+    "referencePoint": "Point de Référence",
     "yourSearchPosition": "Votre position de recherche",
+    "manage": "Gérer cet établissement",
     "getDirections": "Obtenir l'itinéraire",
     "verifyOnOSM": "Vérifier sur OpenStreetMap"
   },

@@ -48,6 +48,32 @@
     "addressNotProvided": "Address not provided",
     "unnamed": "Unnamed medical facility"
   },
+  "edit": {
+    "title": "Edit Facility",
+    "success": "Update successful",
+    "error": "Update error"
+  },
+  "delete": {
+    "confirm": "Are you sure you want to delete this facility?",
+    "success": "Deletion successful",
+    "error": "Deletion error"
+  },
+  "details": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "general": "General",
+    "specialized": "Specialized",
+    "university": "University",
+    "active": "Active",
+    "inactive": "Inactive",
+    "maintenance": "Maintenance",
+    "save": "Save",
+    "cancel": "Cancel",
+    "info": "Information",
+    "created": "Created on",
+    "location": "Location",
+    "back": "Back to map"
+  },
   "facilityTypes": {
     "hospital": "Hospital",
     "clinic": "Private Clinic",
@@ -58,6 +84,7 @@
   "map": {
     "referencePoint": "Reference point",
     "yourSearchPosition": "Your search position",
+    "manage": "Manage this facility",
     "getDirections": "Get directions",
     "verifyOnOSM": "Verify on OpenStreetMap"
   },
@@ -91,5 +118,16 @@
     "coordinates": "Geographic Coordinates",
     "processing": "Processing...",
     "confirmLocation": "Confirm Location"
+  },
+  "form": {
+    "hospitalName": "Hospital Name",
+    "type": "Type",
+    "status": "Status",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "submit": "Add Hospital",
+    "cancel": "Cancel",
+    "success": "Hospital added successfully",
+    "error": "Error creating hospital"
   }
 }
