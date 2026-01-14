@@ -121,6 +121,55 @@ app.get('/api/hospitals/:id', async (req, res) => {
   }
 });
 
+// Update hospital
+app.put('/api/hospitals/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = req.body;
+    
+    // Check if hospital exists
+    const existing = await hospitalRepository.findById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Hospital not found' });
+    }
+    
+    const updateData: any = {};
+    if (data.name) updateData.name = data.name;
+    if (data.type) updateData.type = data.type;
+    if (data.status) updateData.status = data.status;
+    
+    if (data.lat !== undefined && data.lng !== undefined) {
+      updateData.location = {
+        latitude: Number(data.lat),
+        longitude: Number(data.lng)
+      };
+    } else if (data.location) {
+      updateData.location = data.location;
+    }
+
+    const updated = await hospitalRepository.update(id, updateData);
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error updating hospital:', error);
+    res.status(500).json({ error: 'Failed to update hospital' });
+  }
+});
+
+// Delete hospital
+app.delete('/api/hospitals/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const deleted = await hospitalRepository.delete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Hospital not found' });
+    }
+    res.json({ success: true, message: 'Hospital deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting hospital:', error);
+    res.status(500).json({ error: 'Failed to delete hospital' });
+  }
+});
+
 // Verify DB connectivity and start server (Knex style from dev/Migration)
 db.raw("select 1")
   .then(() => {
