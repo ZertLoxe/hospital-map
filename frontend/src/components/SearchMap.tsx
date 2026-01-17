@@ -423,12 +423,43 @@ function ResultsPanel({
   itemsPerPage: number;
 }>) {
   const { t } = useLanguage();
-  const totalPages = Math.ceil(results.length / itemsPerPage);
+  const [quickFilter, setQuickFilter] = useState<'all' | 'pharmacy' | 'medical_clinic' | 'hospital_lab'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter results based on search query and quick filter
+  const filteredResults = results.filter(result => {
+    // 1. Filter by text search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const nameMatch = result.name?.toLowerCase().includes(query);
+      const addressMatch = result.address?.toLowerCase().includes(query);
+      const typeMatch = result.type?.toLowerCase().includes(query);
+      
+      if (!nameMatch && !addressMatch && !typeMatch) return false;
+    }
+
+    // 2. Filter by category
+    if (quickFilter === 'all') return true;
+    const type = result.type;
+    if (quickFilter === 'pharmacy') return type === "Pharmacie";
+    if (quickFilter === 'medical_clinic') return type === "Cabinet médical" || type === "Clinique privée";
+    if (quickFilter === 'hospital_lab') return type === "Hôpital" || type === "Laboratoire";
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+  
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [quickFilter, searchQuery, setCurrentPage]);
+
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedResults = results.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedResults = filteredResults.slice(startIndex, startIndex + itemsPerPage);
+
   const exportToCSV = () => {
     const headers = [t.results.name, t.results.type, `${t.results.distance} (km)`, t.results.phone, t.results.address, "Site Web", t.results.hours];
-    const rows = results.map(f => [
+    const rows = filteredResults.map(f => [
       f.name || t.results.unnamed,
       f.type,
       f.distance?.toFixed(2) || "-",
@@ -461,7 +492,7 @@ function ResultsPanel({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-muted">
           <h3 className="font-bold text-foreground">
-            {t.results.title} ({results.length})
+            {t.results.title} ({filteredResults.length})
           </h3>
           <button
             onClick={onExpandToggle}
@@ -473,42 +504,105 @@ function ResultsPanel({
             {isExpanded ? t.results.reduce : t.results.expand}
           </button>
         </div>
+        {/* Text Search */}
+        <div className="p-6 pb-2 bg-surface">
+          <div className="relative group">
+            <svg 
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher par nom, spécialité ou adresse..."
+              className="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-muted rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all shadow-sm placeholder:text-muted-foreground/70 text-foreground"
+            />
+          </div>
+        </div>
+        {/* Quick Filters */}
+        <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-3 sticky top-0 z-10 backdrop-blur-sm">
+          <button
+            onClick={() => setQuickFilter('all')}
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
+              quickFilter === 'all'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
+            }`}
+          >
+            Tout
+          </button>
+          <button
+            onClick={() => setQuickFilter('pharmacy')}
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
+              quickFilter === 'pharmacy'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
+            }`}
+          >
+            Pharmacies
+          </button>
+          <button
+            onClick={() => setQuickFilter('medical_clinic')}
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
+              quickFilter === 'medical_clinic'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
+            }`}
+          >
+            Cabinets médicaux
+          </button>
+          <button
+            onClick={() => setQuickFilter('hospital_lab')}
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
+              quickFilter === 'hospital_lab'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
+            }`}
+          >
+            Hôpitaux/Labos
+          </button>
+        </div>
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-6 bg-surface">
           {isExpanded ? (
             // Expanded Table View
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="bg-surface rounded-xl shadow-sm border border-muted overflow-hidden overflow-x-auto">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="text-left text-muted-foreground border-b border-muted">
-                    <th className="pb-2 font-medium">{t.results.name}</th>
-                    <th className="pb-2 font-medium">{t.results.type}</th>
-                    <th className="pb-2 font-medium">{t.results.distance}</th>
-                    <th className="pb-2 font-medium">{t.results.phone}</th>
-                    <th className="pb-2 font-medium">{t.results.address}</th>
-                    <th className="pb-2 font-medium">{t.results.hours}</th>
-                    <th className="pb-2 font-medium">{t.results.actions}</th>
+                  <tr className="bg-surface-variant/30 border-b border-muted">
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.name}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.type}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.distance}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.phone}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.address}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.hours}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.actions}</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-muted/30">
                   {paginatedResults.map((facility) => (
-                    <tr key={facility.id} className="border-b border-muted/50 hover:bg-muted/50">
-                      <td className="py-3 font-medium">{facility.name || t.results.unnamed}</td>
-                      <td className="py-3">
-                        <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
+                    <tr key={facility.id} className="hover:bg-surface-variant/20 transition-colors">
+                      <td className="px-6 py-5 font-medium text-foreground">{facility.name || t.results.unnamed}</td>
+                      <td className="px-6 py-5">
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap">
                           {facility.type}
                         </span>
                       </td>
-                      <td className="py-3">{facility.distance?.toFixed(2)} km</td>
-                      <td className="py-3">{facility.phone || "-"}</td>
-                      <td className="py-3 max-w-48 truncate">{facility.address || "-"}</td>
-                      <td className="py-3 max-w-32 truncate text-xs">{facility.openingHours || "-"}</td>
-                      <td className="py-3">
+                      <td className="px-6 py-5 text-sm text-muted-foreground">{facility.distance?.toFixed(2)} km</td>
+                      <td className="px-6 py-5 text-sm text-muted-foreground whitespace-nowrap">{facility.phone || "-"}</td>
+                      <td className="px-6 py-5 text-sm text-muted-foreground max-w-xs">{facility.address || "-"}</td>
+                      <td className="px-6 py-5 text-sm text-muted-foreground max-w-xs">{facility.openingHours || "-"}</td>
+                      <td className="px-6 py-5">
                         <a
                           href={`https://www.google.com/maps/dir/?api=1&destination=${facility.lat},${facility.lng}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:underline text-xs"
+                          className="text-sm font-semibold text-primary hover:text-primary/80"
                         >
                           {t.results.directionsShort}
                         </a>
@@ -580,16 +674,16 @@ function ResultsPanel({
           )}
         </div>
         {/* Footer with Pagination */}
-        {results.length > 0 && (
+        {filteredResults.length > 0 && (
           <div className="p-4 border-t border-muted flex items-center justify-between">
             {isExpanded && (
               <>
                 <span className="text-sm text-muted-foreground">
-                  {Math.min(startIndex + 1, results.length)}-{Math.min(startIndex + itemsPerPage, results.length)} {t.results.of} {results.length}
+                  {Math.min(startIndex + 1, filteredResults.length)}-{Math.min(startIndex + itemsPerPage, filteredResults.length)} {t.results.of} {filteredResults.length}
                 </span>
                 <button
                   onClick={exportToCSV}
-                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
+                  className="ml-4 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
                 >
                   {t.results.exportCSV}
                 </button>
