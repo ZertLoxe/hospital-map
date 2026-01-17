@@ -423,6 +423,24 @@ function ResultsPanel({
   itemsPerPage: number;
 }>) {
   const { t } = useLanguage();
+  
+  // Map facility type to badge classes with dark mode support
+  const getTypeBadgeClasses = (type: string) => {
+    switch (type) {
+      case "Pharmacie":
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200";
+      case "Cabinet médical":
+      case "Clinique privée":
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "Hôpital":
+        return "px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap";
+      case "Laboratoire":
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+      default:
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+    }
+  };
+  
   const [quickFilter, setQuickFilter] = useState<'all' | 'pharmacy' | 'medical_clinic' | 'hospital_lab'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -589,7 +607,7 @@ function ResultsPanel({
                     <tr key={facility.id} className="hover:bg-surface-variant/20 transition-colors">
                       <td className="px-6 py-5 font-medium text-foreground">{facility.name || t.results.unnamed}</td>
                       <td className="px-6 py-5">
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap">
+                        <span className={getTypeBadgeClasses(facility.type)}>
                           {facility.type}
                         </span>
                       </td>
@@ -624,7 +642,7 @@ function ResultsPanel({
                         <span className="text-orange-500 text-xs ml-1" title="Incomplete data">⚠️</span>
                       )}
                     </h4>
-                    <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs whitespace-nowrap">
+                    <span className={getTypeBadgeClasses(facility.type)}>
                       {facility.type}
                     </span>
                   </div>
@@ -858,6 +876,24 @@ export default function SearchMap() {
       default: return "#16a34a"; // green as default
     }
   };
+  
+  // Map facility type to badge classes with dark mode support
+  const getTypeBadgeClasses = (type: string) => {
+    switch (type) {
+      case "Pharmacie":
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200";
+      case "Cabinet médical":
+      case "Clinique privée":
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "Hôpital":
+        return "px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap";
+      case "Laboratoire":
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+      default:
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+    }
+  };
+  
   const referenceIcon = referencePoint ? createIcon(getReferencePointColor(referencePoint.status)) : createIcon('#16a34a');
   return (
     <div className="relative w-full h-[calc(100vh-80px)] bg-surface-variant">
@@ -925,7 +961,9 @@ export default function SearchMap() {
                     <span className="text-orange-500 text-xs ml-1" title="Incomplete data">⚠️</span>
                   )}
                 </h4>
-                <p className="text-primary font-medium mb-2">{facility.type}</p>
+                <p className="mb-2">
+                  <span className={getTypeBadgeClasses(facility.type)}>{facility.type}</span>
+                </p>
                 <p className="text-gray-600 mb-1">📍 {facility.distance?.toFixed(2)} km</p>
                 {facility.address ? (
                   <p className="text-gray-600 mb-1">📮 {facility.address}</p>
