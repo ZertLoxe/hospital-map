@@ -1,0 +1,133 @@
+{
+  "nav": {
+    "brand": "MedLocator"
+  },
+  "hero": {
+    "findThe": "Find The",
+    "medicalFacilities": "Medical Facilities",
+    "nearYou": "Near You",
+    "search": "Search",
+    "addHospital": "Add Hospital",
+    "imageAlt": "Modern hospital building"
+  },
+  "search": {
+    "title": "Reference Point",
+    "placeholder": "Choose a hospital, clinic, health center...",
+    "loading": "Loading...",
+    "chooseHospital": "Choose a hospital",
+    "noResults": "No facility found",
+    "loadingFacilities": "Loading facilities...",
+    "selectFacility": "Select a facility as starting point",
+    "radius": "Search radius",
+    "facilityTypes": "Facility types",
+    "allTypes": "All types will be searched",
+    "typesSelected": "type(s) selected",
+    "searchButton": "Search",
+    "searching": "Searching..."
+  },
+  "results": {
+    "title": "Results",
+    "expand": "Expand",
+    "reduce": "Reduce",
+    "name": "Name",
+    "type": "Type",
+    "distance": "Distance",
+    "phone": "Phone",
+    "address": "Address",
+    "hours": "Hours",
+    "actions": "Actions",
+    "directions": "GET DIRECTIONS →",
+    "directionsShort": "Directions",
+    "verify": "Verify",
+    "exportCSV": "Export CSV",
+    "previous": "Previous",
+    "next": "Next",
+    "of": "of",
+    "noResults": "Run a search to see facilities",
+    "phoneNotProvided": "Phone not provided",
+    "addressNotProvided": "Address not provided",
+    "unnamed": "Unnamed medical facility"
+  },
+  "edit": {
+    "title": "Edit Facility",
+    "success": "Update successful",
+    "error": "Update error"
+  },
+  "delete": {
+    "confirm": "Are you sure you want to delete this facility?",
+    "success": "Deletion successful",
+    "error": "Deletion error"
+  },
+  "details": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "general": "General",
+    "specialized": "Specialized",
+    "university": "University",
+    "active": "Active",
+    "inactive": "Inactive",
+    "maintenance": "Maintenance",
+    "save": "Save",
+    "cancel": "Cancel",
+    "info": "Information",
+    "created": "Created on",
+    "location": "Location",
+    "back": "Back to map"
+  },
+  "facilityTypes": {
+    "hospital": "Hospital",
+    "clinic": "Private Clinic",
+    "doctor": "Medical Office",
+    "pharmacy": "Pharmacy",
+    "laboratory": "Laboratory"
+  },
+  "map": {
+    "referencePoint": "Reference point",
+    "yourSearchPosition": "Your search position",
+    "manage": "Manage this facility",
+    "getDirections": "Get directions",
+    "verifyOnOSM": "Verify on OpenStreetMap"
+  },
+  "toast": {
+    "referencePoint": "Reference point",
+    "searchInProgress": "Search in progress...",
+    "noFacilitiesFound": "No facilities found in this area",
+    "facilitiesFound": "facility(ies) found on OpenStreetMap",
+    "searchError": "Search error. Please try again.",
+    "selectFacility": "Please select a facility as reference point",
+    "loadError": "Unable to load facilities",
+    "hospitalSaved": "Hospital saved!",
+    "saveError": "Error saving data.",
+    "locationNotFound": "Location not found"
+  },
+  "addHospital": {
+    "title": "Add a New Hospital",
+    "subtitle": "Define the strategic location of your Hospital.",
+    "searchOrClick": "Search for an address or click directly on the map",
+    "futureLocation": "Future hospital location",
+    "hospitalName": "Hospital Name",
+    "namePlaceholder": "Ex: Central Hospital of Casablanca",
+    "specialization": "Specialization",
+    "chooseOption": "Choose an option",
+    "general": "General Hospital (All specialties)",
+    "specialized": "Specialized Clinic",
+    "status": "Status",
+    "active": "Active",
+    "underConstruction": "Under Construction",
+    "underStudy": "Under Study",
+    "coordinates": "Geographic Coordinates",
+    "processing": "Processing...",
+    "confirmLocation": "Confirm Location"
+  },
+  "form": {
+    "hospitalName": "Hospital Name",
+    "type": "Type",
+    "status": "Status",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "submit": "Add Hospital",
+    "cancel": "Cancel",
+    "success": "Hospital added successfully",
+    "error": "Error creating hospital"
+  }
+}

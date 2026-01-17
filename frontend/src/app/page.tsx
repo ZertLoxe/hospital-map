@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 
 const Card = () => {
@@ -39,6 +40,12 @@ const Card = () => {
     </div>
   </div>
   );
+=======
+import HeroSection from "@/components/HeroSection";
+
+export default function Home() {
+  return <HeroSection />;
+>>>>>>> 14add2d08552612455367dff9b2e8f1f337a4c25
 }
 
 export default Card;

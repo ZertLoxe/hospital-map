@@ -156,7 +156,10 @@
   --color-surface-container-highest: var(--md-sys-color-surface-container-highest);
 }
 
+html,
 body {
+  height: 100vh;
+  overflow: hidden;
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: Arial, Helvetica, sans-serif;
