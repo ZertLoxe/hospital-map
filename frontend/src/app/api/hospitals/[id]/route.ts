@@ -5,7 +5,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:5000';
+    const backendUrl = process.env.BACKEND_URL ;
     const { id } = await context.params;
     
     const response = await fetch(`${backendUrl}/api/hospitals/${id}`);
@@ -40,7 +40,7 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:5000';
+    const backendUrl = process.env.BACKEND_URL ;
     const { id } = await context.params;
     
     const response = await fetch(`${backendUrl}/api/hospitals/${id}`, {
@@ -74,7 +74,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:5000';
+    const backendUrl = process.env.BACKEND_URL ;
     const { id } = await context.params;
     
     const response = await fetch(`${backendUrl}/api/hospitals/${id}`, {

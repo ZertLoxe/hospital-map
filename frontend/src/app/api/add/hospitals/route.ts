@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:5000';
+    const backendUrl = process.env.BACKEND_URL;
     
     const response = await fetch(`${backendUrl}/api/add/hospitals/`, {
       method: 'POST',

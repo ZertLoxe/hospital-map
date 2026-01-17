@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:5000';
+    const backendUrl = process.env.BACKEND_URL ;
     
     // Forward all query parameters
     const queryString = searchParams.toString();
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:5000';
+    const backendUrl = process.env.BACKEND_URL ;
     
     const response = await fetch(`${backendUrl}/api/hospitals`, {
       method: 'POST',
