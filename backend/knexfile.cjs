@@ -1,7 +1,7 @@
 require("dotenv").config();
 
-// Default to local Docker database if no DATABASE_URL set
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/hospital_db";
+// Default to Docker Compose service `db` if no DATABASE_URL is set
+const DATABASE_URL = process.env.DATABASE_URL || "";
 
 /**
  * Knex configuration - simple setup for local Docker database

@@ -7,8 +7,7 @@ import knex, { type Knex } from "knex";
 
 dotenv.config();
 
-// Default to local Docker database
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/hospital_db";
+const DATABASE_URL = process.env.DATABASE_URL || "";
 
 /**
  * Knex instance - use this for all database queries

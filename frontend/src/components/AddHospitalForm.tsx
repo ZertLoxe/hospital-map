@@ -192,7 +192,7 @@ export default function AddHospitalForm() {
               <label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">{t.addHospital.specialization}</label>
               <select
                 {...register("type")}
-                className="w-full p-3 rounded-xl border border-muted bg-muted/50 text-foreground focus:bg-surface focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
+              className="w-full px-3 py-2 border border-muted rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               required
               >
                 <option value="" disabled >{t.addHospital.chooseOption}</option>
@@ -206,13 +206,13 @@ export default function AddHospitalForm() {
               <label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">{t.addHospital.status}</label>
               <select
                 {...register("status")}
-                className="w-full p-3 rounded-xl border border-muted bg-muted/50 text-foreground focus:bg-surface focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
+              className="w-full px-3 py-2 border border-muted rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               required
               >
                 <option value="" disabled >{t.addHospital.chooseOption}</option>
                 <option value="Active">{t.addHospital.active}</option>
-                <option value="En construction">{t.addHospital.underConstruction}</option>
-                <option value="En étude">{t.addHospital.underStudy}</option>
+                <option value="En construction">{t.addHospital.construction}</option>
+                <option value="En étude">{t.addHospital.study}</option>
               </select>
             </div>    
               

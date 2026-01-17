@@ -122,8 +122,8 @@
     "specialized": "Clinique Spécialisée",
     "status": "Statut",
     "active": "Active",
-    "underConstruction": "En Construction",
-    "underStudy": "En Étude",
+    "construction": "En Construction",
+    "study": "En Étude",
     "coordinates": "Coordonnées Géographiques",
     "processing": "Traitement...",
     "confirmLocation": "Confirmer l'Emplacement"

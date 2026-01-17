@@ -4,66 +4,15 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
-import L from "leaflet";
-import { OpenStreetMapProvider } from 'leaflet-geosearch';
-import "leaflet/dist/leaflet.css";
-import "leaflet-defaulticon-compatibility";
-import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import 'leaflet-geosearch/dist/geosearch.css';
+import dynamic from "next/dynamic";
+
+const MapClient = dynamic(() => import("@/components/MapClient"), { ssr: false });
 
 // --- Location Search Component from AddHospitalForm ---
-function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (location: { lat: number; lng: number; label: string }) => void; placeholder: string }) {
-  const [query, setQuery] = useState('');
-  const provider = new OpenStreetMapProvider();
-  const { t } = useLanguage();
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    try {
-      const results = await provider.search({ query });
-      if (results.length > 0) {
-        const firstResult = results[0];
-        onSelectLocation({ lat: firstResult.y, lng: firstResult.x, label: firstResult.label });
-      } else {
-        toast.error(t.toast.locationNotFound);
-      }
-    } catch (error) {
-      console.error('Error searching location:', error);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSearch} className="absolute top-4 left-12 bg-surface rounded-lg shadow-xl z-1000 border border-muted overflow-hidden flex">
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="p-3 w-64 text-foreground bg-surface placeholder-muted-foreground text-sm focus:outline-none"
-        placeholder={placeholder}
-      />
-      <button type="submit" className="bg-primary text-white px-4 py-2 text-sm font-bold">OK</button>
-    </form>
-  );
-}
+// Map and search are provided by client-only `MapClient` component (dynamically loaded)
 
 // --- Map Click Handler ---
-function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
-
-// --- Change View Component ---
-function ChangeView({ center }: { center: [number, number] }) {
-  const map = useMap();
-  map.setView(center, map.getZoom());
-  return null;
-}
+// Note: `ChangeView` and other map helpers live inside the client component when needed.
 
 // Interface for Hospital data
 interface Hospital {
@@ -178,14 +127,7 @@ export default function HospitalDetails({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const createIcon = () => {
-      return L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background-color: #2563eb; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-      });
-    };
+  // Marker/rendering icons handled inside client map component to avoid server imports
 
   if (isLoading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   if (!hospital) return null;
@@ -230,25 +172,19 @@ export default function HospitalDetails({ params }: { params: Promise<{ id: stri
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                      {/* LEFT: INTERACTIVE MAP (Similar to Add Page) */}
                     <div className="w-full h-80 lg:h-full relative rounded-xl overflow-hidden border border-muted shadow-sm">
-                        <LocationSearch onSelectLocation={(loc) => updateLocation(loc.lat, loc.lng)} placeholder={t.addHospital?.searchOrClick || "Rechercher..."} />
-                        
-                        <MapContainer center={mapCenter} zoom={15} className="h-full w-full z-0">
-                            <ChangeView center={mapCenter} />
-                            <TileLayer 
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution="&copy; OpenStreetMap contributors"
-                            />
-                            
-                            <MapClickHandler onMapClick={(lat, lng) => updateLocation(lat, lng)} />
+                      <MapClient
+                        center={mapCenter}
+                        zoom={15}
+                        className="h-full w-full z-0"
+                        showSearch
+                        onSelectLocation={(loc) => updateLocation(loc.lat, loc.lng)}
+                        onMapClick={(lat, lng) => updateLocation(lat, lng)}
+                        markers={[{ position: [formData.lat, formData.lng], popup: t.addHospital?.futureLocation || "Nouvel emplacement" }]}
+                      />
 
-                            <Marker position={[formData.lat, formData.lng]} icon={createIcon()}>
-                                <Popup>{t.addHospital?.futureLocation || "Nouvel emplacement"}</Popup>
-                            </Marker>
-                        </MapContainer>
-
-                        <div className="absolute bottom-4 left-4 right-4 bg-surface/80 backdrop-blur-sm rounded-lg p-2 z-1000 text-center text-xs text-muted-foreground border border-muted shadow-sm">
-                            {t.addHospital?.searchOrClick || "Cliquez sur la carte"}
-                        </div>
+                      <div className="absolute bottom-4 left-4 right-4 bg-surface/80 backdrop-blur-sm rounded-lg p-2 z-1000 text-center text-xs text-muted-foreground border border-muted shadow-sm">
+                        {t.addHospital?.searchOrClick || "Cliquez sur la carte"}
+                      </div>
                     </div>
 
                     {/* RIGHT: FORM */}
@@ -275,7 +211,6 @@ export default function HospitalDetails({ params }: { params: Promise<{ id: stri
                                 >
                                     <option value="Générale">{t.details?.general || "Générale"}</option>
                                     <option value="Spécialisée">{t.details?.specialized || "Spécialisée"}</option>
-                                    <option value="Universitaire">{t.details?.university || "Universitaire"}</option>
                                 </select>
                             </div>
                             <div>
@@ -287,8 +222,8 @@ export default function HospitalDetails({ params }: { params: Promise<{ id: stri
                                     className="w-full px-3 py-2 border border-muted rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
                                 >
                                     <option value="Active">{t.details?.active || "Actif"}</option>
-                                    <option value="Inactive">{t.details?.inactive || "Inactif"}</option>
-                                    <option value="Maintenance">{t.details?.maintenance || "En maintenance"}</option>
+                                    <option value="Étude">{t.details?.study || "En Étude"}</option>
+                                    <option value="Construction">{t.details?.construction || "En Construction"}</option>
                                 </select>
                             </div>
                              {/* COORDINATES (Read-onlyish but editable) */}
@@ -387,24 +322,12 @@ export default function HospitalDetails({ params }: { params: Promise<{ id: stri
                     </div>
 
                     <div className="h-[400px] rounded-lg overflow-hidden border border-muted z-0">
-                        <MapContainer
-                            center={[hospital.location.latitude, hospital.location.longitude]}
-                            zoom={15}
-                            className="w-full h-full"
-                        >
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution="&copy; OpenStreetMap contributors"
-                            />
-                            <Marker 
-                                position={[hospital.location.latitude, hospital.location.longitude]}
-                                icon={createIcon()}
-                            >
-                                <Popup>
-                                    <strong>{hospital.name}</strong>
-                                </Popup>
-                            </Marker>
-                        </MapContainer>
+                      <MapClient
+                        center={[hospital.location.latitude, hospital.location.longitude]}
+                        zoom={15}
+                        className="w-full h-full"
+                        markers={[{ position: [hospital.location.latitude, hospital.location.longitude], popup: <strong>{hospital.name}</strong> }]}
+                      />
                     </div>
                 </div>
             )}

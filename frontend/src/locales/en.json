@@ -54,7 +54,7 @@
     "error": "Update error"
   },
   "delete": {
-    "confirm": "Are you sure you want to delete this facility?",
+    "confirm": "Are you sure you want to delete this hospital?",
     "success": "Deletion successful",
     "error": "Deletion error"
   },
@@ -65,8 +65,8 @@
     "specialized": "Specialized",
     "university": "University",
     "active": "Active",
-    "inactive": "Inactive",
-    "maintenance": "Maintenance",
+    "study": "Under Study",
+    "construction": "Under Construction",
     "save": "Save",
     "cancel": "Cancel",
     "info": "Information",
@@ -113,8 +113,8 @@
     "specialized": "Specialized Clinic",
     "status": "Status",
     "active": "Active",
-    "underConstruction": "Under Construction",
-    "underStudy": "Under Study",
+    "construction": "Under Construction",
+    "study": "Under Study",
     "coordinates": "Geographic Coordinates",
     "processing": "Processing...",
     "confirmLocation": "Confirm Location"
