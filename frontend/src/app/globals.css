@@ -124,6 +124,7 @@
   --color-on-error-container: var(--md-sys-color-on-error-container);
   --color-background: var(--md-sys-color-background);
   --color-on-background: var(--md-sys-color-on-background);
+  --color-foreground: var(--md-sys-color-on-surface);
   --color-surface: var(--md-sys-color-surface);
   --color-on-surface: var(--md-sys-color-on-surface);
   --color-surface-variant: var(--md-sys-color-surface-variant);
