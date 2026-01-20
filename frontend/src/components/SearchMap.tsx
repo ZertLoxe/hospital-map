@@ -244,19 +244,19 @@ function SearchSidebar({
         </svg>
       </button>
       {/* Sidebar Panel */}
-      <div className={`absolute left-0 top-0 h-full bg-surface-container-low shadow-xl z-1000 transition-all duration-300 ${isOpen ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
+      <div className={`absolute left-0 top-0 h-full bg-surface shadow-xl z-1000 transition-all duration-300 ${isOpen ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden'}`}>
         <div className="p-6 h-full overflow-y-auto">
           {/* Hospital Selection Dropdown with Live Search */}
           <div className="mb-4">
-            <label htmlFor="hospitalSelect" className="text-sm font-semibold text-foreground mb-2 block">{t.search.title}</label>
+            <label htmlFor="hospitalSelect" className="text-sm font-medium text-foreground mb-2 block">{t.search.title}</label>
             <div className="relative">
               {/* Dropdown Button */}
               <button
                 id="hospitalSelect"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full p-3 border border-outline-variant rounded-lg bg-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer text-left flex items-center justify-between transition-all"
+                className="w-full p-3 border border-muted rounded-lg bg-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer text-left flex items-center justify-between"
               >
-                <span className={selectedHospital ? "text-foreground font-medium" : "text-muted-foreground"}>
+                <span className={selectedHospital ? "text-foreground" : "text-muted-foreground"}>
                   {isLoadingHospitals
                     ? t.search.loading
                     : selectedHospital
@@ -378,7 +378,7 @@ function SearchSidebar({
           <button
             onClick={onSearch}
             disabled={isLoading}
-            className="w-full py-3 bg-primary text-on-primary font-bold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg dark:shadow-primary/20"
+            className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -506,15 +506,15 @@ function ResultsPanel({
         </svg>
       </button>
       {/* Results Panel */}
-      <div className={`absolute right-0 top-0 h-full bg-surface-container-low shadow-xl z-1000 transition-all duration-300 flex flex-col ${getPanelWidthClass(isOpen, isExpanded)}`}>
+      <div className={`absolute right-0 top-0 h-full bg-surface shadow-xl z-1000 transition-all duration-300 flex flex-col ${getPanelWidthClass(isOpen, isExpanded)}`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-outline-variant">
+        <div className="flex items-center justify-between p-4 border-b border-muted">
           <h3 className="font-bold text-foreground">
             {t.results.title} ({filteredResults.length})
           </h3>
           <button
             onClick={onExpandToggle}
-            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isExpanded ? "M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25" : "M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"} />
@@ -523,7 +523,7 @@ function ResultsPanel({
           </button>
         </div>
         {/* Text Search */}
-        <div className="p-6 pb-2 bg-surface-container-low">
+        <div className="p-6 pb-2 bg-surface">
           <div className="relative group">
             <svg 
               className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" 
@@ -538,58 +538,58 @@ function ResultsPanel({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher par nom, spécialité ou adresse..."
-              className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-sm transition-all shadow-sm placeholder:text-muted-foreground/70 text-foreground"
+              className="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-muted rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all shadow-sm placeholder:text-muted-foreground/70 text-foreground"
             />
           </div>
         </div>
         {/* Quick Filters */}
-        <div className="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex flex-wrap gap-3 sticky top-0 z-10 backdrop-blur-sm">
+        <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-3 sticky top-0 z-10 backdrop-blur-sm">
           <button
             onClick={() => setQuickFilter('all')}
-            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'all'
-                ? 'bg-primary text-on-primary border-primary shadow-md'
-                : 'bg-surface text-muted-foreground border-outline-variant hover:border-primary hover:text-primary'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
             Tout
           </button>
           <button
             onClick={() => setQuickFilter('pharmacy')}
-            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'pharmacy'
-                ? 'bg-primary text-on-primary border-primary shadow-md'
-                : 'bg-surface text-muted-foreground border-outline-variant hover:border-primary hover:text-primary'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
             Pharmacies
           </button>
           <button
             onClick={() => setQuickFilter('medical_clinic')}
-            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'medical_clinic'
-                ? 'bg-primary text-on-primary border-primary shadow-md'
-                : 'bg-surface text-muted-foreground border-outline-variant hover:border-primary hover:text-primary'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
             Cabinets médicaux
           </button>
           <button
             onClick={() => setQuickFilter('hospital_lab')}
-            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'hospital_lab'
-                ? 'bg-primary text-on-primary border-primary shadow-md'
-                : 'bg-surface text-muted-foreground border-outline-variant hover:border-primary hover:text-primary'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
             Hôpitaux/Labos
           </button>
         </div>
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-surface-container-low">
+        <div className="flex-1 overflow-y-auto p-6 bg-surface">
           {isExpanded ? (
             // Expanded Table View
-            <div className="bg-surface-container rounded-xl shadow-sm border border-outline-variant overflow-hidden overflow-x-auto">
+            <div className="bg-surface rounded-xl shadow-sm border border-muted overflow-hidden overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-surface-variant/30 border-b border-muted">
@@ -634,7 +634,7 @@ function ResultsPanel({
             // Compact Card View
             <div className="space-y-3">
               {paginatedResults.map((facility) => (
-                <div key={facility.id} className="p-4 border border-outline-variant rounded-lg bg-surface-container hover:border-primary/50 hover:shadow-md transition-all">
+                <div key={facility.id} className="p-4 border border-muted rounded-lg bg-surface hover:border-primary/50 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-foreground text-sm leading-tight">
                       {facility.name}
@@ -701,7 +701,7 @@ function ResultsPanel({
                 </span>
                 <button
                   onClick={exportToCSV}
-                  className="ml-4 px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-lg hover:opacity-90 transition-all shadow-md active:scale-95"
+                  className="ml-4 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
                 >
                   {t.results.exportCSV}
                 </button>
@@ -924,7 +924,7 @@ export default function SearchMap() {
                   
                   <a 
                     href={`/hospital/${referencePoint.id}`} 
-                    className="flex items-center justify-center gap-2 text-xs bg-primary text-on-primary font-bold px-3 py-2 rounded hover:bg-primary/90 transition-all w-full"
+                    className="flex items-center justify-center gap-2 text-xs bg-primary text-white px-3 py-2 rounded hover:bg-primary/90 transition-colors w-full"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />

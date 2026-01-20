@@ -46,7 +46,7 @@ function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (
         className="p-3 w-64 text-foreground bg-surface placeholder-muted-foreground text-sm focus:outline-none"
         placeholder={placeholder}
       />
-      <button type="submit" className="bg-primary text-on-primary px-4 py-2 text-sm font-bold">OK</button>
+      <button type="submit" className="bg-primary text-white px-4 py-2 text-sm font-bold">OK</button>
     </form>
   );
 }
