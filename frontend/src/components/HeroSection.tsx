@@ -59,7 +59,8 @@ const HeroSection = () => {
             </div>
 
             {/*RIGHT SECTION: image */}
-            <div className="relative w-full sm:h-[50%] h-[70%] aspect-square lg:h-[70%] rounded-[2.5rem] overflow-hidden shadow-lg">                <Image
+            <div className="relative w-full sm:h-[50%] h-[70%] aspect-square lg:h-[70%] rounded-[2.5rem] overflow-hidden shadow-lg">
+            <Image
                 src="/hospital-hero.jpg" 
                 alt={t.hero.imageAlt}
                 fill
