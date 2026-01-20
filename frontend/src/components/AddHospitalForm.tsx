@@ -55,7 +55,7 @@ function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (
         className="p-3 w-64 text-foreground bg-surface placeholder-muted-foreground text-sm focus:outline-none"
         placeholder={placeholder}
       />
-      <button type="submit" className="bg-primary text-white px-4 py-2 text-sm font-bold">OK</button>
+      <button type="submit" className="bg-primary text-on-primary px-4 py-2 text-sm font-bold">OK</button>
     </form>
   );
 }
@@ -236,7 +236,7 @@ export default function AddHospitalForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-widest text-white transition-all shadow-xl ${
+              className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-widest text-on-primary transition-all shadow-xl ${
                 isSubmitting ? "bg-muted text-muted-foreground" : "bg-primary hover:scale-[1.02] active:scale-95 shadow-primary/20"
               }`}
             >
