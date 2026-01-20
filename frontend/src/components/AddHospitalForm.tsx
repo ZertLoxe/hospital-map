@@ -55,7 +55,7 @@ function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (
         className="p-3 w-64 text-foreground bg-surface placeholder-muted-foreground text-sm focus:outline-none"
         placeholder={placeholder}
       />
-      <button type="submit" className="bg-primary text-white px-4 py-2 text-sm font-bold">OK</button>
+      <button type="submit" className="bg-primary text-on-primary px-4 py-2 text-sm font-bold">OK</button>
     </form>
   );
 }
@@ -80,7 +80,7 @@ function ChangeView({ center }: { center: [number, number] }) {
 // --- MAIN COMPONENT ---
 export default function AddHospitalForm() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([33.5731, -7.5898]);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null);
@@ -161,6 +161,7 @@ export default function AddHospitalForm() {
           <header className="mb-6 text-center lg:text-left">
            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
               <TypeAnimation
+                key={language}
                 sequence={[
                   t.addHospital.title,
                 ]}
@@ -225,7 +226,7 @@ export default function AddHospitalForm() {
                   <p><span className="text-muted-foreground">LNG:</span> {lng ? lng.toFixed(6) : "---"}</p>
                 </div>
                 {lat ? (
-                   <div className="bg-primary text-white p-2 rounded-full">✓</div>
+                   <div className="bg-primary text-on-primary p-2 rounded-full">✓</div>
                 ) : (
                    <div className="animate-pulse bg-muted w-8 h-8 rounded-full"></div>
                 )}
@@ -236,7 +237,7 @@ export default function AddHospitalForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-widest text-white transition-all shadow-xl ${
+              className={`w-full py-4 rounded-2xl font-black text-lg uppercase tracking-widest text-on-primary transition-all shadow-xl ${
                 isSubmitting ? "bg-muted text-muted-foreground" : "bg-primary hover:scale-[1.02] active:scale-95 shadow-primary/20"
               }`}
             >

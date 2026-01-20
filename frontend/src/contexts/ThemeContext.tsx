@@ -46,25 +46,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Apply theme to document on mount and when theme changes
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", storedTheme);
-    localStorage.setItem("theme", storedTheme);
+    if (typeof window !== "undefined") {
+      document.documentElement.setAttribute("data-theme", storedTheme);
+    }
   }, [storedTheme]);
 
   const setTheme = useCallback((newTheme: Theme) => {
     localStorage.setItem("theme", newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
     // Trigger storage event for useSyncExternalStore
     window.dispatchEvent(new Event("storage"));
   }, []);
 
   const toggleTheme = useCallback(() => {
-    const currentTheme = document.documentElement.getAttribute("data-theme") as Theme;
-    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    const newTheme = storedTheme === "dark" ? "light" : "dark";
     localStorage.setItem("theme", newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
     // Trigger storage event for useSyncExternalStore
     window.dispatchEvent(new Event("storage"));
-  }, []);
+  }, [storedTheme]);
 
   const value: ThemeContextType = {
     theme: storedTheme,

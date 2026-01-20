@@ -23,8 +23,15 @@
     "allTypes": "All types will be searched",
     "typesSelected": "type(s) selected",
     "searchButton": "Search",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "quickFilters": {
+      "all": "All",
+      "pharmacies": "Pharmacies",
+      "medical_clinic": "Medical offices",
+      "hospital_lab": "Hospitals/Labs"
+    }
   },
+  "resultsPlaceholder": "Search by name, specialty or address...",
   "results": {
     "title": "Results",
     "expand": "Expand",

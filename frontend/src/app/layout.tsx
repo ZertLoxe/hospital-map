@@ -45,10 +45,21 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Prevent language mismatch between server and client */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var lang = localStorage.getItem('language') || 'fr';
+                  document.documentElement.lang = lang;
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         
         <ThemeProvider>
           <LanguageProvider>

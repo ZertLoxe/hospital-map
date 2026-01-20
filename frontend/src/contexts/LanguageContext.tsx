@@ -1,11 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode, useSyncExternalStore } from "react";
+import { createContext, useContext, useCallback, ReactNode, useSyncExternalStore, useEffect } from "react";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
 
 type Language = "en" | "fr";
-type Translations = typeof en;
+export type Translations = typeof en;
 
 interface LanguageContextType {
   language: Language;
@@ -14,7 +14,7 @@ interface LanguageContextType {
   toggleLanguage: () => void;
 }
 
-const translations: Record<Language, Translations> = { en, fr };
+const translations = { en, fr } as unknown as Record<Language, Translations>;
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -38,29 +38,31 @@ function subscribe(callback: () => void): () => void {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const storedLanguage = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [language, setLanguageState] = useState<Language>(storedLanguage);
+
+  // Apply language to document on mount and when language changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.documentElement.lang = storedLanguage;
+    }
+  }, [storedLanguage]);
 
   const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("language", lang);
-    }
+    localStorage.setItem("language", lang);
+    // Trigger storage event for useSyncExternalStore
+    window.dispatchEvent(new Event("storage"));
   }, []);
 
   const toggleLanguage = useCallback(() => {
-    setLanguageState((prev) => {
-      const newLang = prev === "fr" ? "en" : "fr";
-      if (typeof window !== "undefined") {
-        localStorage.setItem("language", newLang);
-      }
-      return newLang;
-    });
-  }, []);
+    const newLang = storedLanguage === "fr" ? "en" : "fr";
+    localStorage.setItem("language", newLang);
+    // Trigger storage event for useSyncExternalStore
+    window.dispatchEvent(new Event("storage"));
+  }, [storedLanguage]);
 
   const value: LanguageContextType = {
-    language,
+    language: storedLanguage,
     setLanguage,
-    t: translations[language],
+    t: translations[storedLanguage],
     toggleLanguage,
   };
 

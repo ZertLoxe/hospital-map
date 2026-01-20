@@ -23,8 +23,15 @@
     "allTypes": "Tous les types seront recherchés",
     "typesSelected": "type(s) sélectionné(s)",
     "searchButton": "Rechercher",
-    "searching": "Recherche en cours..."
+    "searching": "Recherche en cours...",
+    "quickFilters": {
+      "all": "Tout",
+      "pharmacies": "Pharmacies",
+      "medical_clinic": "Cabinets médicaux",
+      "hospital_lab": "Hôpitaux/Labos"
+    }
   },
+  "resultsPlaceholder": "Rechercher par nom, spécialité ou adresse...",
   "results": {
     "title": "Résultats",
     "expand": "Étendre",
@@ -67,6 +74,8 @@
     "active": "Actif",
     "inactive": "Inactif",
     "maintenance": "En maintenance",
+    "study": "En étude",
+    "construction": "En construction",
     "save": "Enregistrer",
     "cancel": "Annuler",
     "info": "Informations",

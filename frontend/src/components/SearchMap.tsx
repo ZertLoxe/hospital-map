@@ -8,11 +8,12 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { toast } from "sonner";
 import { calculateDistance, getPanelWidthClass } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { Translations } from "@/contexts/LanguageContext";
 // Types
 interface MedicalFacility {
   id: string;
   name: string;
-  type: string;
+  type: FacilityTypeKey | 'other';
   lat: number;
   lng: number;
   distance?: number;
@@ -53,6 +54,18 @@ const FACILITY_TYPE_MAP: Record<FacilityTypeKey, string[]> = {
   "doctor": ["doctors", "dentist"],
   "pharmacy": ["pharmacy"],
   "laboratory": ["laboratory", "medical_laboratory"],
+};
+
+// Type-guard for FacilityTypeKey and safe label helper
+const isFacilityTypeKey = (val: unknown): val is FacilityTypeKey => {
+  return FACILITY_TYPE_KEYS.includes(val as FacilityTypeKey);
+};
+
+const getFacilityTypeLabel = (
+  t: Translations,
+  rawType: FacilityTypeKey | 'other' | string | undefined
+): string => {
+  return isFacilityTypeKey(rawType) ? t.facilityTypes[rawType] : (rawType ?? '');
 };
 
 // Overpass API endpoints (multiple mirrors for reliability)
@@ -147,17 +160,18 @@ function buildOverpassQuery(lat: number, lng: number, radiusMeters: number, type
   return query;
 }
 // Parse OSM amenity type to display name
-function parseAmenityType(amenity: string, healthcare?: string): string {
-  if (healthcare === "laboratory") return "Laboratoire";
+function parseAmenityType(amenity: string, healthcare?: string): FacilityTypeKey | 'other' {
+  // Return a facility key (one of FacilityTypeKey) so UI can translate
+  if (healthcare === "laboratory") return "laboratory";
   switch (amenity) {
-    case "hospital": return "Hôpital";
-    case "clinic": return "Clinique privée";
+    case "hospital": return "hospital";
+    case "clinic": return "clinic";
     case "doctors":
-    case "dentist": return "Cabinet médical";
-    case "pharmacy": return "Pharmacie";
+    case "dentist": return "doctor";
+    case "pharmacy": return "pharmacy";
     case "laboratory":
-    case "medical_laboratory": return "Laboratoire";
-    default: return "Établissement médical";
+    case "medical_laboratory": return "laboratory";
+    default: return "other";
   }
 }
 // Component to update map view
@@ -234,7 +248,7 @@ function SearchSidebar({
   return (
     <>
       {/* Toggle Button */}
-      <button
+      <button type="button"
         onClick={onToggle}
         aria-label={isOpen ? 'Fermer le panneau de recherche' : 'Ouvrir le panneau de recherche'}
         className="absolute left-0 top-1/2 -translate-y-1/2 z-1001 bg-surface p-2 rounded-r-lg shadow-lg border border-l-0 border-muted hover:bg-muted transition-all"
@@ -251,7 +265,7 @@ function SearchSidebar({
             <label htmlFor="hospitalSelect" className="text-sm font-medium text-foreground mb-2 block">{t.search.title}</label>
             <div className="relative">
               {/* Dropdown Button */}
-              <button
+              <button type="button"
                 id="hospitalSelect"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="w-full p-3 border border-muted rounded-lg bg-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer text-left flex items-center justify-between"
@@ -305,7 +319,7 @@ function SearchSidebar({
                             selectedHospitalId === String(hospital.id) ? 'bg-primary/10' : ''
                           }`}
                         >
-                          <button
+                          <button type="button"
                             onClick={() => handleHospitalSelect(String(hospital.id))}
                             className="flex-1 text-left"
                           >
@@ -366,7 +380,7 @@ function SearchSidebar({
                     onChange={() => handleTypeToggle(typeKey)}
                     className="w-4 h-4 accent-primary rounded"
                   />
-                  <span className="text-sm text-foreground">{t.facilityTypes[typeKey]}</span>
+                  <span className="text-sm text-foreground">{getFacilityTypeLabel(t, typeKey)}</span>
                 </label>
               ))}
             </div>
@@ -375,10 +389,10 @@ function SearchSidebar({
             </p>
           </fieldset>
           {/* Search Button */}
-          <button
+          <button type="button"
             onClick={onSearch}
             disabled={isLoading}
-            className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-primary text-on-primary font-semibold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -424,17 +438,17 @@ function ResultsPanel({
 }>) {
   const { t } = useLanguage();
   
-  // Map facility type to badge classes with dark mode support
-  const getTypeBadgeClasses = (type: string) => {
-    switch (type) {
-      case "Pharmacie":
+  // Map facility type key to badge classes with dark mode support
+  const getTypeBadgeClasses = (typeKey: FacilityTypeKey | 'other') => {
+    switch (typeKey) {
+      case "pharmacy":
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200";
-      case "Cabinet médical":
-      case "Clinique privée":
+      case "doctor":
+      case "clinic":
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "Hôpital":
+      case "hospital":
         return "px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap";
-      case "Laboratoire":
+      case "laboratory":
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
       default:
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
@@ -451,7 +465,9 @@ function ResultsPanel({
       const query = searchQuery.toLowerCase();
       const nameMatch = result.name?.toLowerCase().includes(query);
       const addressMatch = result.address?.toLowerCase().includes(query);
-      const typeMatch = result.type?.toLowerCase().includes(query);
+      const rawType = result.type;
+      const typeLabel = getFacilityTypeLabel(t, rawType);
+      const typeMatch = typeLabel.toLowerCase().includes(query) || (rawType?.toLowerCase().includes(query));
       
       if (!nameMatch && !addressMatch && !typeMatch) return false;
     }
@@ -459,9 +475,9 @@ function ResultsPanel({
     // 2. Filter by category
     if (quickFilter === 'all') return true;
     const type = result.type;
-    if (quickFilter === 'pharmacy') return type === "Pharmacie";
-    if (quickFilter === 'medical_clinic') return type === "Cabinet médical" || type === "Clinique privée";
-    if (quickFilter === 'hospital_lab') return type === "Hôpital" || type === "Laboratoire";
+    if (quickFilter === 'pharmacy') return type === 'pharmacy';
+    if (quickFilter === 'medical_clinic') return type === 'doctor' || type === 'clinic';
+    if (quickFilter === 'hospital_lab') return type === 'hospital' || type === 'laboratory';
     return true;
   });
 
@@ -479,7 +495,7 @@ function ResultsPanel({
     const headers = [t.results.name, t.results.type, `${t.results.distance} (km)`, t.results.phone, t.results.address, "Site Web", t.results.hours];
     const rows = filteredResults.map(f => [
       f.name || t.results.unnamed,
-      f.type,
+      getFacilityTypeLabel(t, f.type) || f.type,
       f.distance?.toFixed(2) || "-",
       f.phone || "-",
       f.address || "-",
@@ -496,7 +512,7 @@ function ResultsPanel({
   return (
     <>
       {/* Toggle Button */}
-      <button
+          <button type="button"
         onClick={onToggle}
         aria-label={isOpen ? 'Fermer le panneau des résultats' : 'Ouvrir le panneau des résultats'}
         className="absolute right-0 top-1/2 -translate-y-1/2 z-1001 bg-surface p-2 rounded-l-lg shadow-lg border border-r-0 border-muted hover:bg-muted transition-all"
@@ -512,7 +528,7 @@ function ResultsPanel({
           <h3 className="font-bold text-foreground">
             {t.results.title} ({filteredResults.length})
           </h3>
-          <button
+          <button type="button"
             onClick={onExpandToggle}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
           >
@@ -537,14 +553,14 @@ function ResultsPanel({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher par nom, spécialité ou adresse..."
+              placeholder={t.resultsPlaceholder || "Rechercher par nom, spécialité ou adresse..."}
               className="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-muted rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all shadow-sm placeholder:text-muted-foreground/70 text-foreground"
             />
           </div>
         </div>
         {/* Quick Filters */}
         <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-3 sticky top-0 z-10 backdrop-blur-sm">
-          <button
+          <button type="button"
             onClick={() => setQuickFilter('all')}
             className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'all'
@@ -552,9 +568,9 @@ function ResultsPanel({
                 : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
-            Tout
+            {t.search.quickFilters.all}
           </button>
-          <button
+          <button type="button"
             onClick={() => setQuickFilter('pharmacy')}
             className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'pharmacy'
@@ -562,9 +578,9 @@ function ResultsPanel({
                 : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
-            Pharmacies
+            {t.search.quickFilters.pharmacies}
           </button>
-          <button
+          <button type="button"
             onClick={() => setQuickFilter('medical_clinic')}
             className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'medical_clinic'
@@ -572,9 +588,9 @@ function ResultsPanel({
                 : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
-            Cabinets médicaux
+            {t.search.quickFilters.medical_clinic}
           </button>
-          <button
+          <button type="button"
             onClick={() => setQuickFilter('hospital_lab')}
             className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
               quickFilter === 'hospital_lab'
@@ -582,7 +598,7 @@ function ResultsPanel({
                 : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
             }`}
           >
-            Hôpitaux/Labos
+            {t.search.quickFilters.hospital_lab}
           </button>
         </div>
         {/* Content */}
@@ -608,8 +624,8 @@ function ResultsPanel({
                       <td className="px-6 py-5 font-medium text-foreground">{facility.name || t.results.unnamed}</td>
                       <td className="px-6 py-5">
                         <span className={getTypeBadgeClasses(facility.type)}>
-                          {facility.type}
-                        </span>
+                            {getFacilityTypeLabel(t, facility.type) || facility.type}
+                          </span>
                       </td>
                       <td className="px-6 py-5 text-sm text-muted-foreground">{facility.distance?.toFixed(2)} km</td>
                       <td className="px-6 py-5 text-sm text-muted-foreground whitespace-nowrap">{facility.phone || "-"}</td>
@@ -642,8 +658,8 @@ function ResultsPanel({
                         <span className="text-orange-500 text-xs ml-1" title="Incomplete data">⚠️</span>
                       )}
                     </h4>
-                    <span className={getTypeBadgeClasses(facility.type)}>
-                      {facility.type}
+                      <span className={getTypeBadgeClasses(facility.type)}>
+                      {getFacilityTypeLabel(t, facility.type) || facility.type}
                     </span>
                   </div>
                   <p className="text-xs text-primary font-semibold mb-2">📍 {facility.distance?.toFixed(2)} km</p>
@@ -699,23 +715,23 @@ function ResultsPanel({
                 <span className="text-sm text-muted-foreground">
                   {Math.min(startIndex + 1, filteredResults.length)}-{Math.min(startIndex + itemsPerPage, filteredResults.length)} {t.results.of} {filteredResults.length}
                 </span>
-                <button
+                <button type="button"
                   onClick={exportToCSV}
-                  className="ml-4 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
+                  className="ml-4 px-4 py-2 bg-primary text-on-primary text-sm cursor-pointer font-medium rounded-lg hover:bg-primary/90"
                 >
                   {t.results.exportCSV}
                 </button>
               </>
             )}
             <div className="flex gap-2 ml-auto">
-              <button
+              <button type="button"
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 className="px-4 py-2 bg-muted text-foreground text-sm font-medium rounded-lg hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t.results.previous}
               </button>
-              <button
+              <button type="button"
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
                 className="px-4 py-2 bg-inverse-surface text-inverse-on-surface text-sm font-medium rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -877,17 +893,17 @@ export default function SearchMap() {
     }
   };
   
-  // Map facility type to badge classes with dark mode support
-  const getTypeBadgeClasses = (type: string) => {
-    switch (type) {
-      case "Pharmacie":
+  // Map facility type key to badge classes with dark mode support
+  const getTypeBadgeClasses = (typeKey: FacilityTypeKey | 'other') => {
+    switch (typeKey) {
+      case "pharmacy":
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200";
-      case "Cabinet médical":
-      case "Clinique privée":
+      case "doctor":
+      case "clinic":
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "Hôpital":
+      case "hospital":
         return "px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap";
-      case "Laboratoire":
+      case "laboratory":
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
       default:
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
@@ -924,7 +940,7 @@ export default function SearchMap() {
                   
                   <a 
                     href={`/hospital/${referencePoint.id}`} 
-                    className="flex items-center justify-center gap-2 text-xs bg-primary text-white px-3 py-2 rounded hover:bg-primary/90 transition-colors w-full"
+                    className="flex items-center justify-center gap-2 text-xs bg-primary text-on-primary px-3 py-2 rounded hover:bg-primary/90 transition-colors w-full"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
@@ -962,7 +978,7 @@ export default function SearchMap() {
                   )}
                 </h4>
                 <p className="mb-2">
-                  <span className={getTypeBadgeClasses(facility.type)}>{facility.type}</span>
+                  <span className={getTypeBadgeClasses(facility.type)}>{getFacilityTypeLabel(t, facility.type) || facility.type}</span>
                 </p>
                 <p className="text-gray-600 mb-1">📍 {facility.distance?.toFixed(2)} km</p>
                 {facility.address ? (
