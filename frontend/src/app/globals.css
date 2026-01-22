@@ -105,6 +105,7 @@
 }
 
 @theme inline {
+  --color-foreground: var(--md-sys-color-on-background);
   --color-primary: var(--md-sys-color-primary);
   --color-surface-tint: var(--md-sys-color-surface-tint);
   --color-on-primary: var(--md-sys-color-on-primary);

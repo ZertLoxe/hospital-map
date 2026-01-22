@@ -26,6 +26,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    entrypoint: ["/bin/sh", "-c", "npm run knex:migrate && exec \"$@\"", "--"]
+    command: ["npm", "run", "dev"]
     # ports:
     #   - "5000:5000"
     volumes:

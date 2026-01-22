@@ -2,13 +2,42 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const HeroSection = () => {
     const { t } = useLanguage();
     const [hasHospitals, setHasHospitals] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    
+    const containerRef = useRef<HTMLElement>(null);
+    const textRef = useRef<HTMLDivElement>(null);
+    const buttonsRef = useRef<HTMLDivElement>(null);
+    const imageRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+            
+            tl.fromTo(textRef.current, 
+                { y: 50, autoAlpha: 0 },
+                { y: 0, autoAlpha: 1, duration: 1 }
+            )
+            .fromTo(buttonsRef.current, 
+                { y: 20, autoAlpha: 0 },
+                { y: 0, autoAlpha: 1, duration: 0.8 }, 
+                "-=0.6"
+            )
+            .fromTo(imageRef.current, 
+                { scale: 1.1, autoAlpha: 0 },
+                { scale: 1, autoAlpha: 1, duration: 1.5, ease: "power2.out" }, 
+                "-=1"
+            );
+        }, containerRef);
+
+        return () => ctx.revert();
+    }, []);
 
     useEffect(() => {
         fetch('/api/hospitals/count')
@@ -24,11 +53,11 @@ const HeroSection = () => {
     }, []);
 
     return(
-        <section className="w-full h-[calc(100vh-72px)] px-4 lg:px-8 flex items-center justify-center bg-background">
+        <section ref={containerRef} className="w-full h-[calc(100vh-72px)] px-4 lg:px-8 flex items-center justify-center bg-background">
           <div className="w-full max-w-8xl grid grid-cols-1 sm:grid-cols-2  items-center px-8">
             {/* LEFT COLUMN: Text Content */}
             
-            <div className="flex flex-col gap-6 max-w-2xl">
+            <div ref={textRef} className="flex flex-col gap-6 max-w-2xl invisible">
                 <h1 className="text-6xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-foreground leading-tight">
                 {t.hero.findThe} <br />
                 <span className="text-primary">
@@ -38,7 +67,7 @@ const HeroSection = () => {
                 </h1>
 
                 {/* Buttons Group */}
-                <div className="flex flex-row gap-4 mt-4">
+                <div ref={buttonsRef} className="flex flex-row gap-4 mt-4 invisible">
                 
                     {/* PRIMARY BUTTON - Only show if hospitals exist */}
                     {!isLoading && hasHospitals && (
@@ -59,9 +88,9 @@ const HeroSection = () => {
             </div>
 
             {/*RIGHT SECTION: image */}
-            <div className="relative w-full sm:h-[50%] h-[70%] aspect-square lg:h-[70%] rounded-[2.5rem] overflow-hidden shadow-lg">
+            <div ref={imageRef} className="relative w-full sm:h-[50%] h-[70%] aspect-square lg:h-[70%] rounded-[2.5rem] overflow-hidden shadow-lg invisible">
             <Image
-                src="/hospital-hero.jpg" 
+                src="/clinic-hero.png" 
                 alt={t.hero.imageAlt}
                 fill
                 className="object-cover scale-110"

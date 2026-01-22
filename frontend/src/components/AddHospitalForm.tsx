@@ -18,7 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 type HospitalFormValues = {
   name: string;
-  type: "Générale" | "Spécialisée";
+  type: "Générale" | "Spécialisée" | "Clinique Multidisciplinaire" | "Clinique d’Oncologie" | "Clinique de Beauté et d’Esthétique" | "Clinique Néphrologique" | "Clinique d’Ophtalmologie";
   status: "Active" | "En construction" | "En étude";
   lat: number;
   lng: number;
@@ -199,6 +199,11 @@ export default function AddHospitalForm() {
                 <option value="" disabled >{t.addHospital.chooseOption}</option>
                 <option value="Générale">{t.addHospital.general}</option>
                 <option value="Spécialisée">{t.addHospital.specialized}</option>
+                <option value="Clinique Multidisciplinaire">{t.addHospital.multidisciplinary}</option>
+                <option value="Clinique d’Oncologie">{t.addHospital.oncology}</option>
+                <option value="Clinique de Beauté et d’Esthétique">{t.addHospital.beauty}</option>
+                <option value="Clinique Néphrologique">{t.addHospital.nephrology}</option>
+                <option value="Clinique d’Ophtalmologie">{t.addHospital.ophthalmology}</option>
               </select>
             </div>
 

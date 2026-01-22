@@ -211,6 +211,11 @@ export default function HospitalDetails({ params }: { params: Promise<{ id: stri
                                 >
                                     <option value="Générale">{t.details?.general || "Générale"}</option>
                                     <option value="Spécialisée">{t.details?.specialized || "Spécialisée"}</option>
+                                    <option value="Clinique Multidisciplinaire">{t.details?.multidisciplinary || "Clinique Multidisciplinaire"}</option>
+                                    <option value="Clinique d’Oncologie">{t.details?.oncology || "Clinique d’Oncologie"}</option>
+                                    <option value="Clinique de Beauté et d’Esthétique">{t.details?.beauty || "Clinique de Beauté et d’Esthétique"}</option>
+                                    <option value="Clinique Néphrologique">{t.details?.nephrology || "Clinique Néphrologique"}</option>
+                                    <option value="Clinique d’Ophtalmologie">{t.details?.ophthalmology || "Clinique d’Ophtalmologie"}</option>
                                 </select>
                             </div>
                             <div>

@@ -68,6 +68,20 @@ const getFacilityTypeLabel = (
   return isFacilityTypeKey(rawType) ? t.facilityTypes[rawType] : (rawType ?? '');
 };
 
+const getHospitalTypeLabel = (t: Translations, type: string) => {
+  const map: Record<string, string> = {
+    "Générale": t.details?.general || "Générale",
+    "Spécialisée": t.details?.specialized || "Spécialisée",
+    "Clinique Multidisciplinaire": t.details?.multidisciplinary || "Clinique Multidisciplinaire",
+    "Clinique d’Oncologie": t.details?.oncology || "Clinique d’Oncologie",
+    "Clinique de Beauté et d’Esthétique": t.details?.beauty || "Clinique de Beauté et d’Esthétique",
+    "Clinique Néphrologique": t.details?.nephrology || "Clinique Néphrologique",
+    "Clinique d’Ophtalmologie": t.details?.ophthalmology || "Clinique d’Ophtalmologie",
+    "Universitaire": t.details?.university || "Universitaire",
+  };
+  return map[type] || type;
+};
+
 // Overpass API endpoints (multiple mirrors for reliability)
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
@@ -324,7 +338,7 @@ function SearchSidebar({
                             className="flex-1 text-left"
                           >
                             <div className={`font-medium text-sm ${selectedHospitalId === String(hospital.id) ? 'text-primary' : 'text-foreground'}`}>{hospital.name}</div>
-                            <div className="text-xs text-muted-foreground">{hospital.type}</div>
+                            <div className="text-xs text-muted-foreground">{getHospitalTypeLabel(t, hospital.type)}</div>
                           </button>
                           
                           <a 

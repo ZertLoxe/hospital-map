@@ -5,7 +5,15 @@ export const hospitalSchema = z.object({
     .min(3, 'Le nom de l\'hôpital doit contenir au moins 3 caractères.')
     .max(50, 'Le nom de l\'hôpital ne peut pas dépasser 50 caractères.'),
 
-    type: z.enum(["Générale","Spécialisée"], {
+    type: z.enum([
+        "Générale",
+        "Spécialisée",
+        "Clinique Multidisciplinaire",
+        "Clinique d’Oncologie",
+        "Clinique de Beauté et d’Esthétique",
+        "Clinique Néphrologique",
+        "Clinique d’Ophtalmologie"
+    ], {
             message: "Veuillez sélectionner un type valide",
     }),
 
