@@ -60,20 +60,21 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        
+
         <ThemeProvider>
           <LanguageProvider>
             <Navbar />
-            <Toaster 
-              position="top-right" 
-              richColors 
-              closeButton 
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              style={{ marginRight: '60px' }}
             />
             {children}
           </LanguageProvider>
         </ThemeProvider>
-       
-       
+
+
       </body>
     </html>
   );

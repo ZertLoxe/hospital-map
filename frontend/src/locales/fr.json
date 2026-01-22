@@ -26,9 +26,11 @@
     "searching": "Recherche en cours...",
     "quickFilters": {
       "all": "Tout",
-      "pharmacies": "Pharmacies",
-      "medical_clinic": "Cabinets médicaux",
-      "hospital_lab": "Cliniques/Labos"
+      "hospital": "Hôpitaux",
+      "clinic": "Cliniques privées",
+      "doctor": "Cabinets médicaux",
+      "pharmacy": "Pharmacies",
+      "laboratory": "Laboratoires"
     }
   },
   "resultsPlaceholder": "Rechercher par nom, spécialité ou adresse...",
@@ -98,7 +100,7 @@
     "longitude": "Longitude"
   },
   "facilityTypes": {
-    "hospital": "Clinique",
+    "hospital": "Hôpital",
     "clinic": "Clinique privée",
     "doctor": "Cabinet médical",
     "pharmacy": "Pharmacie",

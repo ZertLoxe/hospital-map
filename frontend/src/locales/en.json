@@ -26,9 +26,11 @@
     "searching": "Searching...",
     "quickFilters": {
       "all": "All",
-      "pharmacies": "Pharmacies",
-      "medical_clinic": "Medical offices",
-      "hospital_lab": "Clinics/Labs"
+      "hospital": "Hospitals",
+      "clinic": "Private Clinics",
+      "doctor": "Medical Offices",
+      "pharmacy": "Pharmacies",
+      "laboratory": "Laboratories"
     }
   },
   "resultsPlaceholder": "Search by name, specialty or address...",
@@ -87,7 +89,7 @@
     "back": "Back to map"
   },
   "facilityTypes": {
-    "hospital": "Clinic",
+    "hospital": "Hospital",
     "clinic": "Private Clinic",
     "doctor": "Medical Office",
     "pharmacy": "Pharmacy",

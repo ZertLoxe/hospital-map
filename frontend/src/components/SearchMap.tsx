@@ -99,7 +99,7 @@ async function fetchOverpassWithRetry(
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -108,20 +108,20 @@ async function fetchOverpassWithRetry(
         body: `data=${encodeURIComponent(query)}`,
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         const data = await response.json();
         return { success: true, data };
       }
-      
+
       // If server error (5xx), try next endpoint
       if (response.status >= 500) {
         console.warn(`Endpoint ${endpoint} returned ${response.status}, trying next...`);
         continue;
       }
-      
+
       // Client error, don't retry
       const errorText = await response.text();
       return { success: false, error: `API error (${response.status}): ${errorText.slice(0, 100)}` };
@@ -155,7 +155,7 @@ function buildOverpassQuery(lat: number, lng: number, radiusMeters: number, type
     });
   }
   // Build Overpass QL query - search for nodes and ways, output center coordinates
-  const amenityQuery = amenities.map(a => 
+  const amenityQuery = amenities.map(a =>
     `node["amenity"="${a}"](around:${radiusMeters},${lat},${lng});
      way["amenity"="${a}"](around:${radiusMeters},${lat},${lng});`
   ).join("\n");
@@ -329,9 +329,8 @@ function SearchSidebar({
                       filteredHospitals.map((hospital) => (
                         <div
                           key={hospital.id}
-                          className={`w-full flex items-center justify-between p-3 border-b border-muted/50 last:border-b-0 hover:bg-primary/5 transition-colors ${
-                            selectedHospitalId === String(hospital.id) ? 'bg-primary/10' : ''
-                          }`}
+                          className={`w-full flex items-center justify-between p-3 border-b border-muted/50 last:border-b-0 hover:bg-primary/5 transition-colors ${selectedHospitalId === String(hospital.id) ? 'bg-primary/10' : ''
+                            }`}
                         >
                           <button type="button"
                             onClick={() => handleHospitalSelect(String(hospital.id))}
@@ -340,8 +339,8 @@ function SearchSidebar({
                             <div className={`font-medium text-sm ${selectedHospitalId === String(hospital.id) ? 'text-primary' : 'text-foreground'}`}>{hospital.name}</div>
                             <div className="text-xs text-muted-foreground">{getHospitalTypeLabel(t, hospital.type)}</div>
                           </button>
-                          
-                          <a 
+
+                          <a
                             href={`/hospital/${hospital.id}`}
                             className="p-2 text-muted-foreground hover:text-primary transition-colors bg-surface border border-muted rounded-full ml-2 shadow-sm"
                             title="Gérer l'établissement"
@@ -451,7 +450,7 @@ function ResultsPanel({
   itemsPerPage: number;
 }>) {
   const { t } = useLanguage();
-  
+
   // Map facility type key to badge classes with dark mode support
   const getTypeBadgeClasses = (typeKey: FacilityTypeKey | 'other') => {
     switch (typeKey) {
@@ -468,8 +467,8 @@ function ResultsPanel({
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
-  
-  const [quickFilter, setQuickFilter] = useState<'all' | 'pharmacy' | 'medical_clinic' | 'hospital_lab'>('all');
+
+  const [quickFilter, setQuickFilter] = useState<'all' | 'hospital' | 'clinic' | 'doctor' | 'pharmacy' | 'laboratory'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter results based on search query and quick filter
@@ -482,21 +481,18 @@ function ResultsPanel({
       const rawType = result.type;
       const typeLabel = getFacilityTypeLabel(t, rawType);
       const typeMatch = typeLabel.toLowerCase().includes(query) || (rawType?.toLowerCase().includes(query));
-      
+
       if (!nameMatch && !addressMatch && !typeMatch) return false;
     }
 
     // 2. Filter by category
+    // 2. Filter by category
     if (quickFilter === 'all') return true;
-    const type = result.type;
-    if (quickFilter === 'pharmacy') return type === 'pharmacy';
-    if (quickFilter === 'medical_clinic') return type === 'doctor' || type === 'clinic';
-    if (quickFilter === 'hospital_lab') return type === 'hospital' || type === 'laboratory';
-    return true;
+    return result.type === quickFilter;
   });
 
   const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
-  
+
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -526,7 +522,7 @@ function ResultsPanel({
   return (
     <>
       {/* Toggle Button */}
-          <button type="button"
+      <button type="button"
         onClick={onToggle}
         aria-label={isOpen ? 'Fermer le panneau des résultats' : 'Ouvrir le panneau des résultats'}
         className="absolute right-0 top-1/2 -translate-y-1/2 z-1001 bg-surface p-2 rounded-l-lg shadow-lg border border-r-0 border-muted hover:bg-muted transition-all"
@@ -555,10 +551,10 @@ function ResultsPanel({
         {/* Text Search */}
         <div className="p-6 pb-2 bg-surface">
           <div className="relative group">
-            <svg 
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -573,47 +569,21 @@ function ResultsPanel({
           </div>
         </div>
         {/* Quick Filters */}
-        <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-3 sticky top-0 z-10 backdrop-blur-sm">
-          <button type="button"
-            onClick={() => setQuickFilter('all')}
-            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
-              quickFilter === 'all'
-                ? 'bg-primary/10 text-primary border-primary'
-                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
-            }`}
-          >
-            {t.search.quickFilters.all}
-          </button>
-          <button type="button"
-            onClick={() => setQuickFilter('pharmacy')}
-            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
-              quickFilter === 'pharmacy'
-                ? 'bg-primary/10 text-primary border-primary'
-                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
-            }`}
-          >
-            {t.search.quickFilters.pharmacies}
-          </button>
-          <button type="button"
-            onClick={() => setQuickFilter('medical_clinic')}
-            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
-              quickFilter === 'medical_clinic'
-                ? 'bg-primary/10 text-primary border-primary'
-                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
-            }`}
-          >
-            {t.search.quickFilters.medical_clinic}
-          </button>
-          <button type="button"
-            onClick={() => setQuickFilter('hospital_lab')}
-            className={`px-5 py-2 rounded-full border text-sm font-medium transition-colors ${
-              quickFilter === 'hospital_lab'
-                ? 'bg-primary/10 text-primary border-primary'
-                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
-            }`}
-          >
-            {t.search.quickFilters.hospital_lab}
-          </button>
+        <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-2 sticky top-0 z-10 backdrop-blur-sm">
+          {/* Helper to render filter buttons */}
+          {(['all', 'hospital', 'clinic', 'doctor', 'pharmacy', 'laboratory'] as const).map((filterType) => (
+            <button
+              key={filterType}
+              type="button"
+              onClick={() => setQuickFilter(filterType)}
+              className={`px-4 py-2 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${quickFilter === filterType
+                  ? 'bg-primary/10 text-primary border-primary'
+                  : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
+                }`}
+            >
+              {t.search.quickFilters[filterType]}
+            </button>
+          ))}
         </div>
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-surface">
@@ -638,8 +608,8 @@ function ResultsPanel({
                       <td className="px-6 py-5 font-medium text-foreground">{facility.name || t.results.unnamed}</td>
                       <td className="px-6 py-5">
                         <span className={getTypeBadgeClasses(facility.type)}>
-                            {getFacilityTypeLabel(t, facility.type) || facility.type}
-                          </span>
+                          {getFacilityTypeLabel(t, facility.type) || facility.type}
+                        </span>
                       </td>
                       <td className="px-6 py-5 text-sm text-muted-foreground">{facility.distance?.toFixed(2)} km</td>
                       <td className="px-6 py-5 text-sm text-muted-foreground whitespace-nowrap">{facility.phone || "-"}</td>
@@ -672,7 +642,7 @@ function ResultsPanel({
                         <span className="text-orange-500 text-xs ml-1" title="Incomplete data">⚠️</span>
                       )}
                     </h4>
-                      <span className={getTypeBadgeClasses(facility.type)}>
+                    <span className={getTypeBadgeClasses(facility.type)}>
                       {getFacilityTypeLabel(t, facility.type) || facility.type}
                     </span>
                   </div>
@@ -826,14 +796,14 @@ export default function SearchMap() {
       const radiusMeters = searchRadius * 1000;
       // Build and execute Overpass query
       const query = buildOverpassQuery(point.lat, point.lng, radiusMeters, selectedTypes);
-      
+
       toast.info(t.toast.searchInProgress);
       const result = await fetchOverpassWithRetry(query);
-      
+
       if (!result.success) {
         throw new Error(result.error || "Overpass API request failed");
       }
-      
+
       const data = result.data as { elements: OverpassElement[] };
       // Parse results - filter elements that have tags and valid coordinates
       const facilities: MedicalFacility[] = data.elements
@@ -859,7 +829,7 @@ export default function SearchMap() {
             lng: elLon,
             distance,
             phone: tags.phone || tags["contact:phone"] || undefined,
-            address: tags["addr:street"] 
+            address: tags["addr:street"]
               ? `${tags["addr:housenumber"] || ''} ${tags["addr:street"]}${tags["addr:city"] ? ', ' + tags["addr:city"] : ''}`.trim()
               : undefined,
             website: tags.website || tags["contact:website"],
@@ -906,7 +876,7 @@ export default function SearchMap() {
       default: return "#16a34a"; // green as default
     }
   };
-  
+
   // Map facility type key to badge classes with dark mode support
   const getTypeBadgeClasses = (typeKey: FacilityTypeKey | 'other') => {
     switch (typeKey) {
@@ -923,7 +893,7 @@ export default function SearchMap() {
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
-  
+
   const referenceIcon = referencePoint ? createIcon(getReferencePointColor(referencePoint.status)) : createIcon('#16a34a');
   return (
     <div className="relative w-full h-[calc(100vh-80px)] bg-surface-variant">
@@ -951,9 +921,9 @@ export default function SearchMap() {
                     </div>
                     <div className="text-sm font-medium border-b border-gray-200 pb-1 mb-1">{referencePoint.name}</div>
                   </div>
-                  
-                  <a 
-                    href={`/hospital/${referencePoint.id}`} 
+
+                  <a
+                    href={`/hospital/${referencePoint.id}`}
                     className="flex items-center justify-center gap-2 text-xs bg-primary text-on-primary px-3 py-2 rounded hover:bg-primary/90 transition-colors w-full"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
