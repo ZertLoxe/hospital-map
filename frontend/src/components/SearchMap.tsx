@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -10,6 +10,42 @@ import { calculateDistance, getPanelWidthClass } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Translations } from "@/contexts/LanguageContext";
 // Types
+const SPECIALTY_MAPPING: Record<string, string> = {
+  'general': 'Médecine Générale',
+  'general_practice': 'Médecine Générale',
+  'cardiology': 'Cardiologie',
+  'pediatrics': 'Pédiatrie',
+  'paediatrics': 'Pédiatrie',
+  'gynaecology': 'Gynécologie',
+  'gynecology': 'Gynécologie',
+  'dermatology': 'Dermatologie',
+  'ophthalmology': 'Ophtalmologie',
+  'neurology': 'Neurologie',
+  'psychiatry': 'Psychiatrie',
+  'dentist': 'Dentiste',
+  'orthodontics': 'Orthodontie',
+  'surgery': 'Chirurgie',
+  'radiology': 'Radiologie',
+  'physiotherapy': 'Kinésithérapie',
+  "ent": "ORL",
+  "otolaryngology": "ORL",
+  "gastroenterology": "Gastro-entérologie",
+  "urology": "Urologie",
+  "nephrology": "Néphrologie",
+  "pulmonology": "Pneumologie",
+  "rheumatology": "Rhumatologie",
+  "oncology": "Oncologie",
+  "psychotherapy": 'Psychothérapie',
+  "podiatry": "Podologie",
+  "analysis": "Analyses Médicales",
+};
+
+const normalizeSpecialty = (raw: string): string => {
+  const clean = raw.toLowerCase().trim();
+  if (SPECIALTY_MAPPING[clean]) return SPECIALTY_MAPPING[clean];
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
+};
+
 interface MedicalFacility {
   id: string;
   name: string;
@@ -23,6 +59,7 @@ interface MedicalFacility {
   openingHours?: string;
   wheelchair?: string;
   emergency?: boolean;
+  specialty?: string;
 }
 // Hospital from database type
 interface DatabaseHospital {
@@ -439,6 +476,7 @@ function ResultsPanel({
   currentPage,
   setCurrentPage,
   itemsPerPage,
+  selectedTypes,
 }: Readonly<{
   isOpen: boolean;
   onToggle: () => void;
@@ -448,6 +486,7 @@ function ResultsPanel({
   currentPage: number;
   setCurrentPage: (page: number) => void;
   itemsPerPage: number;
+  selectedTypes: FacilityTypeKey[];
 }>) {
   const { t } = useLanguage();
 
@@ -470,8 +509,27 @@ function ResultsPanel({
 
   const [quickFilter, setQuickFilter] = useState<'all' | 'hospital' | 'clinic' | 'doctor' | 'pharmacy' | 'laboratory'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
 
-  // Filter results based on search query and quick filter
+  // Extract available specialties dynamically
+  const availableSpecialties = useMemo(() => {
+    const doctors = results.filter(r => r.type === 'doctor');
+    const specialties = new Set<string>();
+    doctors.forEach(r => {
+      if (r.specialty) specialties.add(r.specialty);
+    });
+    return Array.from(specialties).sort();
+  }, [results]);
+
+  const showSpecialtyDropdown = results.some(r => r.type === 'doctor');
+
+  // Dynamic filter list based on user selection
+  const filterOptions = useMemo(() => {
+    // If no types selected, show all default types
+    if (selectedTypes.length === 0) return ['all', 'hospital', 'clinic', 'doctor', 'pharmacy', 'laboratory'] as const;
+    return ['all', ...selectedTypes] as const;
+  }, [selectedTypes]);
+
   const filteredResults = results.filter(result => {
     // 1. Filter by text search
     if (searchQuery) {
@@ -487,8 +545,14 @@ function ResultsPanel({
 
     // 2. Filter by category
     // 2. Filter by category
-    if (quickFilter === 'all') return true;
-    return result.type === quickFilter;
+    if (quickFilter !== 'all' && result.type !== quickFilter) return false;
+
+    // 3. Filter by Specialty (only affects doctors when a specialty is selected)
+    if (selectedSpecialty !== 'all' && result.type === 'doctor') {
+      return result.specialty === selectedSpecialty;
+    }
+
+    return true;
   });
 
   const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
@@ -496,7 +560,7 @@ function ResultsPanel({
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [quickFilter, searchQuery, setCurrentPage]);
+  }, [quickFilter, searchQuery, selectedSpecialty, setCurrentPage]);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedResults = filteredResults.slice(startIndex, startIndex + itemsPerPage);
@@ -569,21 +633,38 @@ function ResultsPanel({
           </div>
         </div>
         {/* Quick Filters */}
-        <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-2 sticky top-0 z-10 backdrop-blur-sm">
+        <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-2 sticky top-0 z-10 backdrop-blur-sm items-center">
           {/* Helper to render filter buttons */}
-          {(['all', 'hospital', 'clinic', 'doctor', 'pharmacy', 'laboratory'] as const).map((filterType) => (
+          {filterOptions.map((filterType) => (
             <button
               key={filterType}
               type="button"
-              onClick={() => setQuickFilter(filterType)}
+              onClick={() => setQuickFilter(filterType as any)}
               className={`px-4 py-2 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${quickFilter === filterType
-                  ? 'bg-primary/10 text-primary border-primary'
-                  : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
+                ? 'bg-primary/10 text-primary border-primary'
+                : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
                 }`}
             >
-              {t.search.quickFilters[filterType]}
+              {t.search.quickFilters[filterType as keyof typeof t.search.quickFilters] || filterType}
             </button>
           ))}
+
+          {showSpecialtyDropdown && (
+            <div className="ml-auto">
+              <select
+                value={selectedSpecialty}
+                onChange={(e) => setSelectedSpecialty(e.target.value)}
+                className="px-3 py-2 bg-surface text-foreground border border-muted rounded-lg text-xs focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
+              >
+                <option value="all">Toutes les spécialités</option>
+                {availableSpecialties.map(specialty => (
+                  <option key={specialty} value={specialty}>
+                    {specialty}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-surface">
@@ -598,6 +679,7 @@ function ResultsPanel({
                     <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.distance}</th>
                     <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.phone}</th>
                     <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.address}</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Spécialité</th>
                     <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.hours}</th>
                     <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.results.actions}</th>
                   </tr>
@@ -614,6 +696,7 @@ function ResultsPanel({
                       <td className="px-6 py-5 text-sm text-muted-foreground">{facility.distance?.toFixed(2)} km</td>
                       <td className="px-6 py-5 text-sm text-muted-foreground whitespace-nowrap">{facility.phone || "-"}</td>
                       <td className="px-6 py-5 text-sm text-muted-foreground max-w-xs">{facility.address || "-"}</td>
+                      <td className="px-6 py-5 text-sm text-foreground font-medium">{facility.specialty || "-"}</td>
                       <td className="px-6 py-5 text-sm text-muted-foreground max-w-xs">{facility.openingHours || "-"}</td>
                       <td className="px-6 py-5">
                         <a
@@ -651,6 +734,9 @@ function ResultsPanel({
                     <p className="text-[11px] text-muted-foreground mb-1 italic">🏠 {facility.address}</p>
                   ) : (
                     <p className="text-[10px] text-muted-foreground/50 mb-1">{t.results.addressNotProvided}</p>
+                  )}
+                  {facility.specialty && (
+                    <p className="text-xs text-secondary font-medium mb-1">⚕️ {facility.specialty}</p>
                   )}
                   {facility.phone ? (
                     <p className="text-[11px] text-muted-foreground mb-1">📞 {facility.phone}</p>
@@ -820,6 +906,26 @@ export default function SearchMap() {
           const elLat = el.lat ?? el.center?.lat ?? 0;
           const elLon = el.lon ?? el.center?.lon ?? 0;
           const distance = calculateDistance(point.lat, point.lng, elLat, elLon);
+          // Extract and normalize specialty
+          let specialty = undefined;
+          const rawSpecialty = tags["healthcare:speciality"] || tags["medical_specialty"];
+
+          if (rawSpecialty) {
+            // Handle multiple specialties (take the first one primarily, or you could store all)
+            // For now, let's take the first one to simplify the UI
+            const first = rawSpecialty.split(';')[0];
+            specialty = normalizeSpecialty(first);
+          } else if (tags.amenity === 'dentist') {
+            specialty = 'Dentiste';
+          } else if (tags.healthcare === 'physiotherapist') {
+            specialty = 'Kinésithérapie';
+          } else if (tags.healthcare === 'podiatrist') {
+            specialty = 'Podologie';
+          } else if (tags.healthcare === 'psychotherapist') {
+            specialty = 'Psychothérapie';
+          } else if (tags.healthcare === 'laboratory' || tags.healthcare === 'medical_laboratory') {
+            specialty = 'Analyses Médicales';
+          }
           return {
             id: String(el.id),
             // Search for name in multiple possible tags before giving a generic name
@@ -836,6 +942,7 @@ export default function SearchMap() {
             openingHours: tags.opening_hours,
             wheelchair: tags.wheelchair,
             emergency: tags.emergency === "yes",
+            specialty: specialty,
           };
         })
         .sort((a, b) => (a.distance || 0) - (b.distance || 0));
@@ -1022,6 +1129,7 @@ export default function SearchMap() {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         itemsPerPage={itemsPerPage}
+        selectedTypes={selectedTypes}
       />
     </div>
   );

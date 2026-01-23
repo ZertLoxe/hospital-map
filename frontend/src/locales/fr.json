@@ -27,7 +27,7 @@
     "quickFilters": {
       "all": "Tout",
       "hospital": "Hôpitaux",
-      "clinic": "Cliniques privées",
+      "clinic": "Cliniques",
       "doctor": "Cabinets médicaux",
       "pharmacy": "Pharmacies",
       "laboratory": "Laboratoires"
@@ -101,7 +101,7 @@
   },
   "facilityTypes": {
     "hospital": "Hôpital",
-    "clinic": "Clinique privée",
+    "clinic": "Clinique",
     "doctor": "Cabinet médical",
     "pharmacy": "Pharmacie",
     "laboratory": "Laboratoire"

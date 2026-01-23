@@ -27,7 +27,7 @@
     "quickFilters": {
       "all": "All",
       "hospital": "Hospitals",
-      "clinic": "Private Clinics",
+      "clinic": "Clinics",
       "doctor": "Medical Offices",
       "pharmacy": "Pharmacies",
       "laboratory": "Laboratories"
@@ -90,7 +90,7 @@
   },
   "facilityTypes": {
     "hospital": "Hospital",
-    "clinic": "Private Clinic",
+    "clinic": "Clinic",
     "doctor": "Medical Office",
     "pharmacy": "Pharmacy",
     "laboratory": "Laboratory"
