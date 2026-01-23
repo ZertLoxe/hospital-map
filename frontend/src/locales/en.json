@@ -31,6 +31,12 @@
       "doctor": "Medical Offices",
       "pharmacy": "Pharmacies",
       "laboratory": "Laboratories"
+    },
+    "legend": {
+      "title": "Map Legend",
+      "active": "Active",
+      "construction": "Under Construction",
+      "study": "Under Study"
     }
   },
   "resultsPlaceholder": "Search by name, specialty or address...",

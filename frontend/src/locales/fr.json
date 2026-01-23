@@ -31,6 +31,12 @@
       "doctor": "Cabinets médicaux",
       "pharmacy": "Pharmacies",
       "laboratory": "Laboratoires"
+    },
+    "legend": {
+      "title": "Légende des couleurs",
+      "active": "Actif",
+      "construction": "En Construction",
+      "study": "En Étude"
     }
   },
   "resultsPlaceholder": "Rechercher par nom, spécialité ou adresse...",
