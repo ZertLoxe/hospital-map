@@ -1,4 +1,4 @@
-import { FacilityTypeKey, FACILITY_TYPE_MAP, normalizeSpecialty, OverpassElement, MedicalFacility, FACILITY_TYPE_KEYS } from "@/types/hospital";
+import { FacilityTypeKey, FACILITY_TYPE_MAP, normalizeSpecialty, OverpassElement, MedicalFacility } from "@/types/hospital";
 import { calculateDistance } from "@/lib/utils";
 import type { Translations } from "@/contexts/LanguageContext";
 

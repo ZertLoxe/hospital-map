@@ -1,6 +1,10 @@
 {
   "nav": {
-    "brand": "MedLocator"
+    "brand": "MedLocator",
+    "home": "Accueil",
+    "search": "Rechercher",
+    "add": "Ajouter",
+    "docs": "Documentation"
   },
   "hero": {
     "findThe": "Trouvez les",

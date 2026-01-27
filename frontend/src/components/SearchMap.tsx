@@ -11,8 +11,7 @@ import {
   DatabaseHospital,
   MedicalFacility,
   FacilityTypeKey,
-  getFacilityTypeLabel,
-  getHospitalTypeLabel
+  getFacilityTypeLabel
 } from "@/types/hospital";
 import { buildOverpassQuery, fetchOverpassWithRetry, parseOverpassResponse } from "@/lib/overpass";
 import SearchSidebar from "./search-map/SearchSidebar";

@@ -2,12 +2,19 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Navbar() {
   const { language, toggleLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/search", label: t.nav.search },
+    { href: "/add-hospital", label: t.nav.add },
+  ];
 
   return (
     <nav className="flex items-center justify-between p-3 bg-surface text-on-surface shadow-lg">
@@ -37,6 +44,26 @@ export default function Navbar() {
         <Link href="/">{t.nav.brand}</Link>
       </div>
 
+      {/* Main Navigation Links */}
+      <div className="hidden md:flex items-center gap-2">
+        {navLinks.map((link) => {
+          const isActive = pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
+                isActive
+                  ? "bg-secondary-container text-on-secondary-container shadow-sm"
+                  : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Navigation Tools (toggles/button) */}
       <div className="flex gap-7 px-8 items-center">
         {/* Language Toggle Button */}
@@ -54,6 +81,27 @@ export default function Navbar() {
           </svg>
           <span className="text-sm font-semibold">{language.toUpperCase()}</span>
         </button>
+
+        <Link
+          href="/docs"
+          className="cursor-pointer hover:text-primary transition-colors p-1"
+          aria-label={t.nav.docs}
+          title={t.nav.docs}
+        >
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+        </Link>
 
         {/* Theme Toggle Button */}
         <button

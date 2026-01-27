@@ -156,7 +156,7 @@ export default function ResultsPanel({
                         <button
                             key={filterType}
                             type="button"
-                            onClick={() => setQuickFilter(filterType as any)}
+                            onClick={() => setQuickFilter(filterType as QuickFilterType)}
                             className={`px-4 py-2 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${quickFilter === filterType
                                 ? 'bg-primary/10 text-primary border-primary'
                                 : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'

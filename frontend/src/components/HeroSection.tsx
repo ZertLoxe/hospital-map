@@ -69,14 +69,12 @@ const HeroSection = () => {
                 {/* Buttons Group */}
                 <div ref={buttonsRef} className="flex flex-row gap-4 mt-4 invisible">
                 
-                    {/* PRIMARY BUTTON - Only show if hospitals exist */}
-                    {!isLoading && hasHospitals && (
-                        <Link href="/search" className="w-full sm:w-auto">
-                            <button className="w-full sm:px-4 px-8 py-4 bg-primary text-on-primary font-semibold rounded-xl hover:scale-105 lg:hover:scale-115 transition-all duration-200">
-                            {t.hero.search}
-                            </button>
-                        </Link>
-                    )}
+                    {/* PRIMARY BUTTON */}
+                    <Link href="/search" className="w-full sm:w-auto">
+                        <button className="w-full sm:px-4 px-8 py-4 bg-primary text-on-primary font-semibold rounded-xl hover:scale-105 lg:hover:scale-115 transition-all duration-200">
+                        {t.hero.search}
+                        </button>
+                    </Link>
 
                     {/* SECONDARY BUTTON */}
                     <Link href="/add-hospital" className="w-full sm:w-auto">
