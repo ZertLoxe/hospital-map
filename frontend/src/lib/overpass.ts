@@ -1,31 +1,33 @@
-import { FacilityTypeKey, FACILITY_TYPE_MAP, normalizeSpecialty, OverpassElement, MedicalFacility } from "@/types/hospital";
+import { FacilityTypeKey, MedicalFacility } from "@/types/hospital";
 import { calculateDistance } from "@/lib/utils";
 import type { Translations } from "@/contexts/LanguageContext";
 
-// Overpass API endpoints (multiple mirrors for reliability)
-const OVERPASS_ENDPOINTS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-];
+// Google Places API type mapping
+const GOOGLE_PLACES_TYPE_MAP: Record<FacilityTypeKey, string[]> = {
+    hospital: ['hospital'],
+    clinic: ['health', 'physiotherapist'],
+    doctor: ['doctor', 'dentist'],
+    pharmacy: ['pharmacy'],
+    laboratory: ['health'],
+};
 
-// Fetch with retry logic across multiple endpoints
-export async function fetchOverpassWithRetry(
-    query: string,
+// Fetch Google Places with retry logic
+export async function fetchGooglePlacesWithRetry(
+    lat: number,
+    lng: number,
+    radiusMeters: number,
+    types: FacilityTypeKey[],
     maxRetries: number = 3
 ): Promise<{ success: boolean; data?: unknown; error?: string }> {
+    const typesQuery = buildGooglePlacesTypes(types);
+    
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-        const endpoint = OVERPASS_ENDPOINTS[attempt % OVERPASS_ENDPOINTS.length];
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: `data=${encodeURIComponent(query)}`,
+            const url = `/api/places?location=${lat},${lng}&radius=${radiusMeters}&type=${typesQuery}`;
+            const response = await fetch(url, {
                 signal: controller.signal,
             });
 
@@ -36,132 +38,112 @@ export async function fetchOverpassWithRetry(
                 return { success: true, data };
             }
 
-            // If server error (5xx), try next endpoint
-            if (response.status >= 500) {
-                console.warn(`Endpoint ${endpoint} returned ${response.status}, trying next...`);
+            if (response.status >= 500 && attempt < maxRetries - 1) {
+                console.warn(`Server error ${response.status}, retrying...`);
                 continue;
             }
 
-            // Client error, don't retry
             const errorText = await response.text();
             return { success: false, error: `API error (${response.status}): ${errorText.slice(0, 100)}` };
         } catch (err) {
             if (err instanceof Error && err.name === 'AbortError') {
-                console.warn(`Timeout on ${endpoint}, trying next...`);
+                console.warn(`Request timeout, trying again...`);
                 continue;
             }
-            console.warn(`Error on ${endpoint}:`, err);
+            console.warn(`Error:`, err);
             if (attempt === maxRetries - 1) {
                 return { success: false, error: `Network error: ${err instanceof Error ? err.message : 'Unknown error'}` };
             }
         }
     }
-    return { success: false, error: "All Overpass API endpoints failed. Please try again later." };
+    return { success: false, error: "Google Places API request failed after retries." };
 }
 
-// Build Overpass API query
-export function buildOverpassQuery(lat: number, lng: number, radiusMeters: number, types: FacilityTypeKey[]): string {
-    // Map selected types to OSM amenity values
-    let amenities: string[] = [];
+// Build Google Places type query string
+export function buildGooglePlacesTypes(types: FacilityTypeKey[]): string {
     if (types.length === 0) {
-        // If no types selected, search for all medical facilities
-        amenities = ["hospital", "clinic", "doctors", "dentist", "pharmacy", "laboratory", "medical_laboratory"];
-    } else {
-        types.forEach(type => {
-            const osmTypes = FACILITY_TYPE_MAP[type];
-            if (osmTypes) {
-                amenities.push(...osmTypes);
-            }
-        });
+        return 'hospital|doctor|pharmacy|health';
     }
-    // Build Overpass QL query - search for nodes and ways, output center coordinates
-    const amenityQuery = amenities.map(a =>
-        `node["amenity"="${a}"](around:${radiusMeters},${lat},${lng});
-     way["amenity"="${a}"](around:${radiusMeters},${lat},${lng});`
-    ).join("\n");
-    const healthcareQuery = amenities.includes("laboratory") || amenities.includes("medical_laboratory")
-        ? `node["healthcare"="laboratory"](around:${radiusMeters},${lat},${lng});
-       way["healthcare"="laboratory"](around:${radiusMeters},${lat},${lng});`
-        : "";
-    const query = `
-    [out:json][timeout:25];
-    (
-      ${amenityQuery}
-      ${healthcareQuery}
-    );
-    out center;
-  `;
-    return query;
+    
+    const googleTypes = new Set<string>();
+    types.forEach(type => {
+        const mappedTypes = GOOGLE_PLACES_TYPE_MAP[type];
+        if (mappedTypes) {
+            mappedTypes.forEach(t => googleTypes.add(t));
+        }
+    });
+    
+    return Array.from(googleTypes).join('|');
 }
 
-// Parse OSM amenity type to display name
-export function parseAmenityType(amenity: string, healthcare?: string): FacilityTypeKey | 'other' {
-    // Return a facility key (one of FacilityTypeKey) so UI can translate
-    if (healthcare === "laboratory") return "laboratory";
-    switch (amenity) {
-        case "hospital": return "hospital";
-        case "clinic": return "clinic";
-        case "doctors":
-        case "dentist": return "doctor";
-        case "pharmacy": return "pharmacy";
-        case "laboratory":
-        case "medical_laboratory": return "laboratory";
-        default: return "other";
+// Parse Google Places type to our FacilityTypeKey
+export function parseGooglePlaceType(types: string[]): FacilityTypeKey | 'other' {
+    if (types.includes('hospital')) return 'hospital';
+    if (types.includes('doctor') || types.includes('dentist')) return 'doctor';
+    if (types.includes('pharmacy')) return 'pharmacy';
+    if (types.includes('health') || types.includes('physiotherapist')) {
+        // We'll default health to clinic unless we can determine it's a lab
+        return 'clinic';
     }
+    return 'other';
 }
 
-export function parseOverpassResponse(data: { elements: OverpassElement[] }, point: { lat: number; lng: number }, t: Translations): MedicalFacility[] {
-    return data.elements
-        .filter((el: OverpassElement) => {
-            // Must have tags (amenity or healthcare)
-            if (!el.tags) return false;
-            // Must have coordinates (either direct lat/lon for nodes, or center for ways)
-            const hasCoords = (el.lat !== undefined && el.lon !== undefined) || el.center;
-            return hasCoords;
+// Determine specialty from Google Places data
+function determineSpecialty(types: string[], name: string): string | undefined {
+    const nameLower = name.toLowerCase();
+    
+    if (types.includes('dentist') || nameLower.includes('dentist') || nameLower.includes('dental')) {
+        return 'Dentiste';
+    }
+    if (types.includes('physiotherapist') || nameLower.includes('physioth') || nameLower.includes('kinésithérapie')) {
+        return 'Kinésithérapie';
+    }
+    if (nameLower.includes('laboratoire') || nameLower.includes('laboratory') || nameLower.includes('analyse')) {
+        return 'Analyses Médicales';
+    }
+    if (nameLower.includes('podologue') || nameLower.includes('podiatrist')) {
+        return 'Podologie';
+    }
+    if (nameLower.includes('psycho')) {
+        return 'Psychothérapie';
+    }
+    
+    return undefined;
+}
+
+export function parseGooglePlacesResponse(
+    data: { results: any[] },
+    point: { lat: number; lng: number },
+    t: Translations
+): MedicalFacility[] {
+    if (!data.results) return [];
+
+    return data.results
+        .filter((place: any) => {
+            return place.geometry && place.geometry.location;
         })
-        .map((el: OverpassElement) => {
-            const tags = el.tags!;
-            // Get coordinates - prefer direct lat/lon, fall back to center for ways
-            const elLat = el.lat ?? el.center?.lat ?? 0;
-            const elLon = el.lon ?? el.center?.lon ?? 0;
-            const distance = calculateDistance(point.lat, point.lng, elLat, elLon);
-            // Extract and normalize specialty
-            let specialty = undefined;
-            const rawSpecialty = tags["healthcare:speciality"] || tags["medical_specialty"];
+        .map((place: any) => {
+            const lat = place.geometry.location.lat;
+            const lng = place.geometry.location.lng;
+            const distance = calculateDistance(point.lat, point.lng, lat, lng);
+            const types = place.types || [];
+            const placeType = parseGooglePlaceType(types);
+            const specialty = determineSpecialty(types, place.name || '');
 
-            if (rawSpecialty) {
-                // Handle multiple specialties (take the first one primarily, or you could store all)
-                // For now, let's take the first one to simplify the UI
-                const first = rawSpecialty.split(';')[0];
-                specialty = normalizeSpecialty(first);
-            } else if (tags.amenity === 'dentist') {
-                specialty = 'Dentiste';
-            } else if (tags.healthcare === 'physiotherapist') {
-                specialty = 'Kinésithérapie';
-            } else if (tags.healthcare === 'podiatrist') {
-                specialty = 'Podologie';
-            } else if (tags.healthcare === 'psychotherapist') {
-                specialty = 'Psychothérapie';
-            } else if (tags.healthcare === 'laboratory' || tags.healthcare === 'medical_laboratory') {
-                specialty = 'Analyses Médicales';
-            }
             return {
-                id: String(el.id),
-                // Search for name in multiple possible tags before giving a generic name
-                name: tags.name || tags["name:fr"] || tags["name:ar"] || tags.brand || tags.operator || t.results.unnamed,
-                type: parseAmenityType(tags.amenity, tags.healthcare),
-                lat: elLat,
-                lng: elLon,
+                id: place.place_id,
+                name: place.name || t.results.unnamed,
+                type: placeType,
+                lat,
+                lng,
                 distance,
-                phone: tags.phone || tags["contact:phone"] || undefined,
-                address: tags["addr:street"]
-                    ? `${tags["addr:housenumber"] || ''} ${tags["addr:street"]}${tags["addr:city"] ? ', ' + tags["addr:city"] : ''}`.trim()
-                    : undefined,
-                website: tags.website || tags["contact:website"],
-                openingHours: tags.opening_hours,
-                wheelchair: tags.wheelchair,
-                emergency: tags.emergency === "yes",
-                specialty: specialty,
+                phone: place.formatted_phone_number || undefined,
+                address: place.vicinity || undefined,
+                website: place.website || undefined,
+                openingHours: place.opening_hours?.weekday_text?.join(', ') || undefined,
+                wheelchair: place.wheelchair_accessible_entrance ? 'yes' : undefined,
+                emergency: types.includes('emergency') || place.name?.toLowerCase().includes('urgence'),
+                specialty,
             };
         })
         .sort((a, b) => (a.distance || 0) - (b.distance || 0));

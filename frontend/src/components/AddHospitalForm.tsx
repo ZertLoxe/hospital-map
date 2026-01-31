@@ -5,16 +5,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { MapContainer, TileLayer, Marker, useMap, Popup, useMapEvents } from "react-leaflet";
-import { OpenStreetMapProvider } from 'leaflet-geosearch';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from "@react-google-maps/api";
 import { toast } from "sonner";
 
-import "leaflet/dist/leaflet.css";
-import "leaflet-defaulticon-compatibility";
-import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import 'leaflet-geosearch/dist/geosearch.css';
 import { hospitalSchema } from "@/lib/validations";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const containerStyle = {
+  width: '100%',
+  height: '100%'
+};
 
 type HospitalFormValues = {
   name: string;
@@ -25,25 +25,44 @@ type HospitalFormValues = {
 };
 
 // Handles location search in the map
-function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (location: { lat: number; lng: number; label: string }) => void; placeholder: string }) {
+function LocationSearch({ 
+  onSelectLocation, 
+  placeholder,
+  mapInstance 
+}: { 
+  onSelectLocation: (location: { lat: number; lng: number; label: string }) => void; 
+  placeholder: string;
+  mapInstance: google.maps.Map | null;
+}) {
   const [query, setQuery] = useState('');
-  const provider = new OpenStreetMapProvider();
   const { t } = useLanguage();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
-    try {
-      const results = await provider.search({ query });
-      if (results.length > 0) {
-        const firstResult = results[0];
-        onSelectLocation({ lat: firstResult.y, lng: firstResult.x, label: firstResult.label });
+    if (!query.trim() || !mapInstance) return;
+
+    const service = new google.maps.places.PlacesService(mapInstance);
+    const request = {
+      query: query,
+      fields: ['name', 'geometry'],
+    };
+
+    service.findPlaceFromQuery(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
+        const place = results[0];
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          onSelectLocation({ 
+            lat, 
+            lng, 
+            label: place.name || query 
+          });
+        }
       } else {
         toast.error(t.toast.locationNotFound);
       }
-    } catch (error) {
-      console.error('Error searching location:', error);
-    }
+    });
   };
 
   return (
@@ -60,23 +79,6 @@ function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (
   );
 }
 
-// Captures map click events and returns coordinates to the form
-function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
-
-// Updates map center view when coordinates change
-function ChangeView({ center }: { center: [number, number] }) {
-  const map = useMap();
-  map.setView(center, map.getZoom());
-  return null;
-}
-
 // --- MAIN COMPONENT ---
 export default function AddHospitalForm() {
   const router = useRouter();
@@ -84,6 +86,14 @@ export default function AddHospitalForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([33.5731, -7.5898]);
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
+  
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
   
   // Form setup with validation
   const {
@@ -129,27 +139,49 @@ export default function AddHospitalForm() {
     }
   };
 
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-screen">Loading Maps...</div>;
+  }
+
   return (
 <section className="w-full h-[calc(100vh-72px)] bg-surface-variant flex items-center justify-center p-4">      <div className="grid grid-cols-1 lg:grid-cols-2 w-full max-w-7xl h-full bg-surface rounded-2xl shadow-2xl overflow-hidden border border-muted">        
         {/* LEFT: INTERACTIVE MAP */}
         <div className="w-full h-64 lg:h-full relative">
-          <LocationSearch onSelectLocation={(loc) => updateLocation(loc.lat, loc.lng)} placeholder={t.search.placeholder} />
+          <LocationSearch 
+            onSelectLocation={(loc) => updateLocation(loc.lat, loc.lng)} 
+            placeholder={t.search.placeholder}
+            mapInstance={mapInstance}
+          />
           
-          <MapContainer center={mapCenter} zoom={13} className="h-full w-full z-0">
-            <ChangeView center={mapCenter} />
-            <TileLayer 
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap contributors"
-            />
-            
-            <MapClickHandler onMapClick={(lat, lng) => updateLocation(lat, lng)} />
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={{ lat: mapCenter[0], lng: mapCenter[1] }}
+            zoom={13}
+            onLoad={(map: google.maps.Map) => setMapInstance(map)}
+            onClick={(e: google.maps.MapMouseEvent) => {
+              if (e.latLng) {
+                updateLocation(e.latLng.lat(), e.latLng.lng());
+              }
+            }}
+            options={{
+              streetViewControl: false,
+              mapTypeControl: false,
+            }}
+          >
 
             {markerPosition && (
-              <Marker position={markerPosition}>
-                <Popup>{t.addHospital.futureLocation}</Popup>
-              </Marker>
+              <MarkerF 
+                position={{ lat: markerPosition[0], lng: markerPosition[1] }}
+                onClick={() => setShowInfo(true)}
+              >
+                {showInfo && (
+                  <InfoWindowF onCloseClick={() => setShowInfo(false)}>
+                    <div>{t.addHospital.futureLocation}</div>
+                  </InfoWindowF>
+                )}
+              </MarkerF>
             )}
-          </MapContainer>
+          </GoogleMap>
 
           <div className="absolute bottom-4 left-4 right-4 bg-surface/80 backdrop-blur-sm rounded-lg p-2 z-1000 text-center text-xs text-muted-foreground border border-muted shadow-sm">
             {t.addHospital.searchOrClick}
@@ -252,7 +284,7 @@ export default function AddHospitalForm() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>{t.addHospital.processing || t.addHospital.submitting}</span>
+                  <span>{t.addHospital.processing || "Processing..."}</span>
                 </>
               ) : (
                 t.addHospital.confirmLocation

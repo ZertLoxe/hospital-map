@@ -1,12 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import L from "leaflet";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
-import "leaflet/dist/leaflet.css";
-import "leaflet-defaulticon-compatibility";
-import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import 'leaflet-geosearch/dist/geosearch.css';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from "@react-google-maps/api";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -16,25 +10,49 @@ type MarkerItem = {
   color?: string;
 };
 
-function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (location: { lat: number; lng: number; label: string }) => void; placeholder: string }) {
+const containerStyle = {
+  width: '100%',
+  height: '100%'
+};
+
+function LocationSearch({ 
+  onSelectLocation, 
+  placeholder,
+  mapInstance 
+}: { 
+  onSelectLocation: (location: { lat: number; lng: number; label: string }) => void; 
+  placeholder: string;
+  mapInstance: google.maps.Map | null;
+}) {
   const [query, setQuery] = useState('');
-  const provider = new OpenStreetMapProvider();
   const { t } = useLanguage();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
-    try {
-      const results = await provider.search({ query });
-      if (results.length > 0) {
-        const firstResult = results[0];
-        onSelectLocation({ lat: firstResult.y, lng: firstResult.x, label: firstResult.label });
+    if (!query.trim() || !mapInstance) return;
+
+    const service = new google.maps.places.PlacesService(mapInstance);
+    const request = {
+      query: query,
+      fields: ['name', 'geometry'],
+    };
+
+    service.findPlaceFromQuery(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
+        const place = results[0];
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          onSelectLocation({ 
+            lat, 
+            lng, 
+            label: place.name || query 
+          });
+        }
       } else {
         toast.error(t.toast.locationNotFound);
       }
-    } catch (error) {
-      console.error('Error searching location:', error);
-    }
+    });
   };
 
   return (
@@ -50,24 +68,6 @@ function LocationSearch({ onSelectLocation, placeholder }: { onSelectLocation: (
     </form>
   );
 }
-
-function MapClickHandler({ onMapClick }: { onMapClick?: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick?.(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
-
-const createIcon = (color = '#2563eb') => {
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  });
-};
 
 export default function MapClient({
   center,
@@ -86,20 +86,75 @@ export default function MapClient({
   onSelectLocation?: (location: { lat: number; lng: number; label: string }) => void;
   className?: string;
 }) {
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [activeMarker, setActiveMarker] = useState<number | null>(null);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
+
+  if (loadError) {
+    return <div className="flex items-center justify-center h-full">Error loading Google Maps</div>;
+  }
+
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-full">Loading Maps...</div>;
+  }
+
+  const onLoad = (map: google.maps.Map) => {
+    setMapInstance(map);
+  };
+
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng && onMapClick) {
+      onMapClick(e.latLng.lat(), e.latLng.lng());
+    }
+  };
+
   return (
     <div className={`relative ${className || ""}`}>
       {showSearch && onSelectLocation && (
-        <LocationSearch onSelectLocation={onSelectLocation} placeholder={"Rechercher..."} />
+        <LocationSearch 
+          onSelectLocation={onSelectLocation} 
+          placeholder={"Rechercher..."} 
+          mapInstance={mapInstance}
+        />
       )}
-      <MapContainer center={center} zoom={zoom} className="h-full w-full z-0">
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-        <MapClickHandler onMapClick={onMapClick} />
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={{ lat: center[0], lng: center[1] }}
+        zoom={zoom}
+        onLoad={onLoad}
+        onClick={handleMapClick}
+        options={{
+          streetViewControl: false,
+          mapTypeControl: false,
+        }}
+      >
         {markers.map((m, i) => (
-          <Marker key={i} position={m.position} icon={createIcon(m.color)}>
-            {m.popup && <Popup>{m.popup}</Popup>}
-          </Marker>
+          <MarkerF
+            key={i}
+            position={{ lat: m.position[0], lng: m.position[1] }}
+            icon={{
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 12,
+              fillColor: m.color || '#2563eb',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+            }}
+            onClick={() => setActiveMarker(i)}
+          >
+            {activeMarker === i && m.popup && (
+              <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
+                <div>{m.popup}</div>
+              </InfoWindowF>
+            )}
+          </MarkerF>
         ))}
-      </MapContainer>
+      </GoogleMap>
     </div>
   );
 }

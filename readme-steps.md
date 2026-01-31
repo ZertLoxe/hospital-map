@@ -119,9 +119,6 @@ DB_NAME=hospital_map
 
 # JWT Secret (generate a random string)
 JWT_SECRET=your_jwt_secret_key
-
-# API Keys (if applicable)
-# GOOGLE_MAPS_API_KEY=your_api_key
 ```
 
 ### Frontend (`frontend/.env.local`)
@@ -130,9 +127,19 @@ JWT_SECRET=your_jwt_secret_key
 # API URL
 NEXT_PUBLIC_API_URL=http://localhost:5000
 
-# Map API Key (if applicable)
-# NEXT_PUBLIC_MAPS_API_KEY=your_api_key
+# Google Maps API Key (REQUIRED)
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
+
+**Important:** To obtain a Google Maps API Key:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the following APIs:
+   - Maps JavaScript API
+   - Places API
+   - Geocoding API (optional, for enhanced features)
+4. Go to "Credentials" and create an API key
+5. (Recommended) Restrict the API key to your domain for production use
 
 ---
 

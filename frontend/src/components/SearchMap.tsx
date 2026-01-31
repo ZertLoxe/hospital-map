@@ -1,10 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-defaulticon-compatibility";
-import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF, CircleF } from "@react-google-maps/api";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -13,28 +9,14 @@ import {
   FacilityTypeKey,
   getFacilityTypeLabel
 } from "@/types/hospital";
-import { buildOverpassQuery, fetchOverpassWithRetry, parseOverpassResponse } from "@/lib/overpass";
+import { fetchGooglePlacesWithRetry, parseGooglePlacesResponse } from "@/lib/overpass";
 import SearchSidebar from "./search-map/SearchSidebar";
-import ResultsPanel, { QuickFilterType } from "./search-map/ResultsPanel"; // Import new type
+import ResultsPanel, { QuickFilterType } from "./search-map/ResultsPanel";
 
-// Component to update map view
-function ChangeView({ center, zoom = 13, radius = 0 }: { center: [number, number]; zoom?: number; radius?: number }) {
-  const map = useMap();
-  useEffect(() => {
-    if (radius > 0) {
-      const delta_lat = (radius * 1000) / 111000;
-      const delta_lng = delta_lat / Math.cos(center[0] * Math.PI / 180);
-      const bounds: [[number, number], [number, number]] = [
-        [center[0] - delta_lat, center[1] - delta_lng],
-        [center[0] + delta_lat, center[1] + delta_lng]
-      ];
-      map.fitBounds(bounds, { padding: [50, 50] });
-    } else {
-      map.setView(center, zoom);
-    }
-  }, [center, zoom, radius, map]);
-  return null;
-}
+const containerStyle = {
+  width: '100%',
+  height: '100%'
+};
 
 // Main SearchMap Component
 export default function SearchMap() {
@@ -54,7 +36,15 @@ export default function SearchMap() {
   const [searchResults, setSearchResults] = useState<MedicalFacility[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [activeMarker, setActiveMarker] = useState<string | null>(null);
   const itemsPerPage = 8;
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['places'],
+  });
 
   // --- LIFTED STATE FROM RESULTS PANEL ---
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>('all');
@@ -153,19 +143,22 @@ export default function SearchMap() {
         setIsLoading(false);
         return;
       }
-      // Convert radius to meters for Overpass API (Overpass expects meters)
+      // Convert radius to meters for Google Places API
       const radiusMeters = searchRadius * 1000;
-      // Build and execute Overpass query
-      const query = buildOverpassQuery(point.lat, point.lng, radiusMeters, selectedTypes);
-
+      
       toast.info(t.toast.searchInProgress);
-      const result = await fetchOverpassWithRetry(query);
+      const result = await fetchGooglePlacesWithRetry(
+        point.lat, 
+        point.lng, 
+        radiusMeters, 
+        selectedTypes
+      );
 
       if (!result.success) {
-        throw new Error(result.error || "Overpass API request failed");
+        throw new Error(result.error || "Google Places API request failed");
       }
 
-      const facilities = parseOverpassResponse(result.data as any, point, t);
+      const facilities = parseGooglePlacesResponse(result.data as any, point, t);
 
       setSearchResults(facilities);
       setCurrentPage(1);
@@ -186,15 +179,25 @@ export default function SearchMap() {
       setIsLoading(false);
     }
   };
-  // Create custom marker icons
-  const createIcon = (color: string) => {
-    return L.divIcon({
-      className: 'custom-marker',
-      html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
-    });
-  };
+  // Effect to update map bounds when radius changes
+  useEffect(() => {
+    if (mapInstance && referencePoint && searchRadius > 0) {
+      const bounds = new google.maps.LatLngBounds();
+      const center = new google.maps.LatLng(referencePoint.lat, referencePoint.lng);
+      const radiusMeters = searchRadius * 1000;
+      
+      // Calculate bounds from center and radius
+      const ne = google.maps.geometry.spherical.computeOffset(center, radiusMeters * Math.SQRT2, 45);
+      const sw = google.maps.geometry.spherical.computeOffset(center, radiusMeters * Math.SQRT2, 225);
+      
+      bounds.extend(ne);
+      bounds.extend(sw);
+      mapInstance.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+    } else if (mapInstance && !referencePoint) {
+      mapInstance.setCenter({ lat: mapCenter[0], lng: mapCenter[1] });
+      mapInstance.setZoom(13);
+    }
+  }, [mapInstance, referencePoint, searchRadius, mapCenter]);
   // Different colors for different facility types (all blue for external facilities)
   const getMarkerColor = () => {
     return "#2563eb"; // blue for all facilities
@@ -227,27 +230,43 @@ export default function SearchMap() {
     }
   };
 
-  const referenceIcon = referencePoint ? createIcon(getReferencePointColor(referencePoint.status)) : createIcon('#16a34a');
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-full">Loading Maps...</div>;
+  }
+
   return (
     <div className="relative w-full h-[calc(100vh-80px)] bg-surface-variant">
       {/* Map Container */}
-      <MapContainer
-        center={mapCenter}
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        mapContainerClassName="w-full h-full z-0"
+        center={{ lat: mapCenter[0], lng: mapCenter[1] }}
         zoom={13}
-        className="w-full h-full z-0"
-        zoomControl={false}
+        onLoad={(map: google.maps.Map) => setMapInstance(map)}
+        options={{
+          streetViewControl: false,
+          mapTypeControl: false,
+          zoomControl: false,
+        }}
       >
-        <ChangeView center={mapCenter} zoom={13} radius={referencePoint ? searchRadius : 0} />
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
         {/* Reference Point Marker */}
         {referencePoint && (
           <>
-            <Marker position={[referencePoint.lat, referencePoint.lng]} icon={referenceIcon}>
-              <Popup>
-                <div className="flex flex-col gap-2 min-w-[200px]">
+            <MarkerF 
+              position={{ lat: referencePoint.lat, lng: referencePoint.lng }}
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 12,
+                fillColor: getReferencePointColor(referencePoint.status),
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 3,
+              }}
+              onClick={() => setActiveMarker('reference')}
+            >
+              {activeMarker === 'reference' && (
+                <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
+                  <div className="flex flex-col gap-2 min-w-50">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <strong>📍 {t.map.referencePoint}</strong>
@@ -270,23 +289,39 @@ export default function SearchMap() {
                     {t.map.yourSearchPosition}
                   </div>
                 </div>
-              </Popup>
-            </Marker>
-            <Circle
-              center={[referencePoint.lat, referencePoint.lng]}
+                </InfoWindowF>
+              )}
+            </MarkerF>
+            <CircleF
+              center={{ lat: referencePoint.lat, lng: referencePoint.lng }}
               radius={searchRadius * 1000}
-              pathOptions={{ color: '#006877', fillColor: '#006877', fillOpacity: 0.1, weight: 2 }}
+              options={{
+                strokeColor: '#006877',
+                strokeOpacity: 1,
+                strokeWeight: 2,
+                fillColor: '#006877',
+                fillOpacity: 0.1,
+              }}
             />
           </>
         )}
         {/* Result Markers - USING FILTERED RESULTS HERE */}
         {filteredResults.map((facility) => (
-          <Marker
+          <MarkerF
             key={facility.id}
-            position={[facility.lat, facility.lng]}
-            icon={createIcon(getMarkerColor())}
+            position={{ lat: facility.lat, lng: facility.lng }}
+            icon={{
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 12,
+              fillColor: getMarkerColor(),
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+            }}
+            onClick={() => setActiveMarker(facility.id)}
           >
-            <Popup>
+            {activeMarker === facility.id && (
+              <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
               <div className="text-sm min-w-48">
                 <h4 className="font-bold text-base mb-1">
                   {facility.name}
@@ -315,19 +350,20 @@ export default function SearchMap() {
                     🚗 {t.map.getDirections}
                   </a>
                   <a
-                    href={`https://www.openstreetmap.org/node/${facility.id}`}
+                    href={`https://www.google.com/maps/place/?q=place_id:${facility.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline text-xs"
                   >
-                    🔍 {t.map.verifyOnOSM}
+                    🔍 {t.map.verifyOnOSM || "View on Google Maps"}
                   </a>
                 </div>
               </div>
-            </Popup>
-          </Marker>
+              </InfoWindowF>
+            )}
+          </MarkerF>
         ))}
-      </MapContainer>
+      </GoogleMap>
       {/* Left Sidebar */}
       <SearchSidebar
         isOpen={leftSidebarOpen}
