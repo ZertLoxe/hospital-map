@@ -35,6 +35,9 @@ export default function SearchMap() {
   const [referencePoint, setReferencePoint] = useState<{ lat: number; lng: number; status: string; id: string | number; name: string } | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([33.5731, -7.5898]);
   const [searchResults, setSearchResults] = useState<MedicalFacility[]>([]);
+  const [lastSearchKey, setLastSearchKey] = useState<string | null>(null);
+  const [lastSearchRadius, setLastSearchRadius] = useState<number | null>(null);
+  const [lastSearchResults, setLastSearchResults] = useState<MedicalFacility[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
@@ -161,7 +164,24 @@ export default function SearchMap() {
 
       const facilities = parseGooglePlacesResponse(result.data as any, point, t);
 
-      setSearchResults(facilities);
+      const typesKey = selectedTypes.length > 0 ? [...selectedTypes].sort().join("|") : "all";
+      const searchKey = `${point.lat.toFixed(6)}|${point.lng.toFixed(6)}|${typesKey}`;
+
+      let effectiveResults = facilities;
+
+      if (lastSearchKey === searchKey && lastSearchRadius !== null && searchRadius >= lastSearchRadius) {
+        const merged = new Map<string, MedicalFacility>();
+        lastSearchResults.forEach((item) => merged.set(item.id, item));
+        facilities.forEach((item) => merged.set(item.id, item));
+        effectiveResults = Array.from(merged.values()).filter(
+          (item) => item.distance !== undefined && item.distance <= searchRadius
+        );
+      }
+
+      setSearchResults(effectiveResults);
+      setLastSearchKey(searchKey);
+      setLastSearchRadius(searchRadius);
+      setLastSearchResults(effectiveResults);
       setCurrentPage(1);
       // Reset filters on new search to avoid confusion
       setQuickFilter('all');

@@ -23,15 +23,18 @@ export async function fetchGooglePlacesWithRetry(
     const allResults: any[] = [];
     const seenPlaceIds = new Set<string>();
     
-    // Geographic boundary to strictly avoid Spanish results across the strait.
-    // Tarifa (Spain) is at 36.0N. Tangier Med is at 35.89N.
-    // 35.95N effectively blocks the Spanish mainland while keeping all of North Morocco.
-    const MOROCCO_NORTH_LIMIT = 36.05; // Relaxed slightly to not cut off Tangier Med port area
+    // Geographic boundary to strictly block Spanish results across the strait.
+    // Tarifa (Spain) is at 36.01°N, Gibraltar at 36.14°N
+    // Tanger Ville is at 35.77°N, Tanger Med port at 35.89°N
+    // Setting to 35.92°N to be absolutely safe and block ALL Spanish territory
+    const MOROCCO_NORTH_LIMIT = 35.92;
 
     for (const googleType of googleTypesToSearch) {
         let nextPageToken: string | null = null;
         let pageCount = 0;
-        const maxPages = 3; // Google limits to 60 total results per type (3 pages × 20)
+        // Google Places API max limit is 3 pages (60 results) per query
+        // We'll fetch all available pages with no artificial limit
+        const maxPages = 10; // High enough to get all pages (Google stops at 3 anyway)
 
         do {
             let success = false;
@@ -53,19 +56,41 @@ export async function fetchGooglePlacesWithRetry(
                     if (response.ok) {
                         const data = await response.json();
                         if (data.results && Array.isArray(data.results)) {
+                            let addedCount = 0;
+                            let filteredCount = 0;
                             data.results.forEach((place: any) => {
-                                // 1. Check for unique ID
-                                // 2. GEOGRAPHIC FILTER: Only keep results south of the strait (Morocco)
                                 const pLat = place.geometry?.location?.lat;
-                                if (place.place_id && !seenPlaceIds.has(place.place_id)) {
-                                    if (!pLat || pLat < MOROCCO_NORTH_LIMIT) {
-                                        seenPlaceIds.add(place.place_id);
-                                        allResults.push(place);
-                                    }
+                                
+                                // Only process places with valid coordinates
+                                if (!pLat || !place.place_id) {
+                                    return; // Skip places without coordinates or ID
                                 }
+                                
+                                // Skip duplicates
+                                if (seenPlaceIds.has(place.place_id)) {
+                                    return;
+                                }
+                                
+                                // STRICT GEOGRAPHIC FILTER: Reject anything north of Morocco limit
+                                if (pLat >= MOROCCO_NORTH_LIMIT) {
+                                    filteredCount++;
+                                    console.log(`🚫 Filtered out (Spain): ${place.name} at ${pLat.toFixed(4)}°N`);
+                                    return;
+                                }
+                                
+                                // Valid Moroccan facility
+                                seenPlaceIds.add(place.place_id);
+                                allResults.push(place);
+                                addedCount++;
                             });
+                            console.log(`[${googleType}] Page ${pageCount + 1}: ${addedCount} added, ${filteredCount} filtered (Spain), ${data.results.length} total in response`);
                         }
                         nextPageToken = data.next_page_token || null;
+                        if (nextPageToken) {
+                            console.log(`[${googleType}] Next page token available, will fetch page ${pageCount + 2}`);
+                        } else {
+                            console.log(`[${googleType}] No more pages available. Total fetched: ${pageCount + 1} pages`);
+                        }
                         success = true;
                     } else if (response.status >= 500 && attempt < maxRetries - 1) {
                         await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
@@ -80,7 +105,11 @@ export async function fetchGooglePlacesWithRetry(
             }
             pageCount++;
         } while (nextPageToken && pageCount < maxPages);
+        
+        console.log(`[${googleType}] Completed: ${pageCount} pages fetched`);
     }
+    
+    console.log(`Total unique facilities found: ${allResults.length}`);
     
     if (allResults.length > 0 || googleTypesToSearch.length === 0) {
         return { success: true, data: { results: allResults, status: 'OK' } };
