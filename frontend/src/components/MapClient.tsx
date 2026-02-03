@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from "@react-google-maps/api";
+import { GOOGLE_MAPS_LIBRARIES } from "@/lib/google-maps";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -92,7 +93,7 @@ export default function MapClient({
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   if (loadError) {

@@ -5,8 +5,9 @@ export async function GET(request: NextRequest) {
   const location = searchParams.get('location');
   const radius = searchParams.get('radius');
   const type = searchParams.get('type');
+  const pagetoken = searchParams.get('pagetoken');
 
-  if (!location || !radius) {
+  if (!pagetoken && (!location || !radius)) {
     return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
   }
 
@@ -17,11 +18,19 @@ export async function GET(request: NextRequest) {
 
   try {
     const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
-    url.searchParams.set('location', location);
-    url.searchParams.set('radius', radius);
-    if (type) {
-      url.searchParams.set('type', type);
+    
+    if (pagetoken) {
+      url.searchParams.set('pagetoken', pagetoken);
+    } else {
+      url.searchParams.set('location', location!);
+      url.searchParams.set('radius', radius!);
+      if (type) {
+        url.searchParams.set('type', type);
+      }
+      // Biases results towards Morocco
+      url.searchParams.set('region', 'ma');
     }
+    
     url.searchParams.set('key', apiKey);
 
     const response = await fetch(url.toString());

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF, CircleF } from "@react-google-maps/api";
+import { GOOGLE_MAPS_LIBRARIES } from "@/lib/google-maps";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -43,7 +44,7 @@ export default function SearchMap() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   // --- LIFTED STATE FROM RESULTS PANEL ---
@@ -265,7 +266,10 @@ export default function SearchMap() {
               onClick={() => setActiveMarker('reference')}
             >
               {activeMarker === 'reference' && (
-                <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
+                <InfoWindowF 
+                  position={{ lat: referencePoint.lat, lng: referencePoint.lng }}
+                  onCloseClick={() => setActiveMarker(null)}
+                >
                   <div className="flex flex-col gap-2 min-w-50">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -321,7 +325,10 @@ export default function SearchMap() {
             onClick={() => setActiveMarker(facility.id)}
           >
             {activeMarker === facility.id && (
-              <InfoWindowF onCloseClick={() => setActiveMarker(null)}>
+              <InfoWindowF 
+                position={{ lat: facility.lat, lng: facility.lng }}
+                onCloseClick={() => setActiveMarker(null)}
+              >
               <div className="text-sm min-w-48">
                 <h4 className="font-bold text-base mb-1">
                   {facility.name}
@@ -355,7 +362,7 @@ export default function SearchMap() {
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline text-xs"
                   >
-                    🔍 {t.map.verifyOnOSM || "View on Google Maps"}
+                    🔍 View on Google Maps
                   </a>
                 </div>
               </div>

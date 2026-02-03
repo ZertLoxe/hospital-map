@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from "@react-google-maps/api";
+import { GOOGLE_MAPS_LIBRARIES } from "@/lib/google-maps";
 import { toast } from "sonner";
 
 import { hospitalSchema } from "@/lib/validations";
@@ -92,7 +93,7 @@ export default function AddHospitalForm() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places'],
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
   
   // Form setup with validation
