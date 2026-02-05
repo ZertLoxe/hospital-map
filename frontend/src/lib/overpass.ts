@@ -137,33 +137,73 @@ function getGoogleTypesToSearch(types: FacilityTypeKey[]): string[] {
 }
 
 // Parse Google Places type to our FacilityTypeKey
-export function parseGooglePlaceType(types: string[], name: string = ''): FacilityTypeKey | 'other' {
+export function parseGooglePlaceType(types: string[], name: string = '', address: string = ''): FacilityTypeKey | 'other' {
     const nameLower = name.toLowerCase();
+    const addressLower = address.toLowerCase();
+    const combinedText = `${nameLower} ${addressLower}`;
+
+    // 1. HARD EXCLUSIONS - Definitely not medical
+    const NON_MEDICAL_TYPES = [
+        'place_of_worship', 'mosque', 'church', 'synagogue', 'temple',
+        'restaurant', 'cafe', 'bar', 'food', 'meal_delivery', 'meal_takeaway',
+        'store', 'clothing_store', 'grocery_or_supermarket', 'supermarket',
+        'shopping_mall', 'bakery', 'bank', 'atm', 'gas_station',
+        'car_repair', 'car_dealer', 'parking', 'lodging', 'hotel',
+        'school', 'university', 'library', 'post_office', 'stadium'
+    ];
     
-    // Check for hospital
+    // Check if any Google type is definitely non-medical
+    if (types.some(type => NON_MEDICAL_TYPES.includes(type))) {
+        return 'other';
+    }
+
+    // 2. KEYWORD EXCLUSIONS (Both Name and Address-like fields)
+    const EXCLUSION_KEYWORDS = [
+        'mosquée', 'mosque', 'masjid', 'مسجد', 'zawiya', 'zaouïa',
+        'église', 'church', 'synagogue', 'temple',
+        'droguerie', 'drogrie', 'drogries', 'drogue', 'hardware', 'quincaillerie', 'visserie',
+        'restaurant', 'café', 'pizzeria', 'snack', 'food', 'grill',
+        'épicerie', 'supermarché', 'supermarket', 'market', 'marché',
+        'banque', 'bank', 'assurance', 'insurance', 'école', 'school',
+        'hôtel', 'hotel', 'café', 'complexe', 'résidence', 'residence'
+    ];
+
+    if (EXCLUSION_KEYWORDS.some(k => combinedText.includes(k))) {
+        return 'other';
+    }
+    
+    // 3. POSITIVE IDENTIFICATION
+    // Priority 1: Hospital
     if (types.includes('hospital')) return 'hospital';
     
-    // Check for pharmacy
-    if (types.includes('pharmacy') || types.includes('drugstore')) return 'pharmacy';
+    // Priority 2: Pharmacy (Explicit Google type)
+    if (types.includes('pharmacy') || types.includes('drugstore')) {
+        // Double check it's not a hardware drug store (droguerie) mislabeled by Google
+        if (combinedText.includes('drogue')) return 'other';
+        return 'pharmacy';
+    }
     
-    // Check for laboratory based on name
+    // Priority 3: Check for pharmacy in name/address
+    if (combinedText.includes('pharmacie') || combinedText.includes('pharmacy') || combinedText.includes('صيدلية')) {
+        return 'pharmacy';
+    }
+    
+    // Priority 4: Laboratory based on name
     if (nameLower.includes('laboratoire') || nameLower.includes('laboratory') || 
-        nameLower.includes('analyse') || nameLower.includes('lab ')) {
+        combinedText.includes('analyse') || combinedText.includes('lab ')) {
         return 'laboratory';
     }
     
-    // Check for doctors/dentists
+    // Priority 5: Doctors/dentists
     if (types.includes('doctor') || types.includes('dentist')) return 'doctor';
     
-    // Check for clinic/medical office
+    // Priority 6: Clinic/medical office
     if (types.includes('health') || types.includes('physiotherapist')) {
-        // If name suggests it's a clinic or cabinet
-        if (nameLower.includes('clinique') || nameLower.includes('clinic') ||
-            nameLower.includes('centre') || nameLower.includes('center') ||
-            nameLower.includes('polyclinique')) {
+        if (combinedText.includes('clinique') || combinedText.includes('clinic') ||
+            combinedText.includes('centre') || combinedText.includes('center') ||
+            combinedText.includes('polyclinique')) {
             return 'clinic';
         }
-        // Otherwise it's likely a doctor's office
         return 'doctor';
     }
     
@@ -196,9 +236,11 @@ function determineSpecialty(types: string[], name: string): string | undefined {
 export function parseGooglePlacesResponse(
     data: { results: any[] },
     point: { lat: number; lng: number },
-    t: Translations
+    t: Translations,
+    allowedTypes: FacilityTypeKey[] = []
 ): MedicalFacility[] {
     if (!data.results) return [];
+    const allowedSet = new Set(allowedTypes);
 
     return data.results
         .filter((place: any) => {
@@ -210,7 +252,8 @@ export function parseGooglePlacesResponse(
             const distance = calculateDistance(point.lat, point.lng, lat, lng);
             const types = place.types || [];
             const placeName = place.name || '';
-            const placeType = parseGooglePlaceType(types, placeName);
+            const placeAddress = place.vicinity || '';
+            const placeType = parseGooglePlaceType(types, placeName, placeAddress);
             const specialty = determineSpecialty(types, placeName);
 
             return {
@@ -228,6 +271,10 @@ export function parseGooglePlacesResponse(
                 emergency: types.includes('emergency') || place.name?.toLowerCase().includes('urgence'),
                 specialty,
             };
+        })
+        .filter((facility) => {
+            if (allowedSet.size === 0) return true;
+            return allowedSet.has(facility.type as FacilityTypeKey);
         })
         .sort((a, b) => (a.distance || 0) - (b.distance || 0));
 }

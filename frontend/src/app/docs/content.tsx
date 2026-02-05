@@ -25,7 +25,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
         {
           id: "concept",
           title: "Concept & Utilisation",
-          content: "L'application repose sur deux sources de données : l'API Overpass (OpenStreetMap) pour les données publiques en temps réel, et une base de données PostgreSQL locale pour les établissements gérés par les utilisateurs.",
+          content: "L'application repose sur deux sources de données : l'API Google Places (Google Maps) pour les données publiques en temps réel, et une base de données PostgreSQL locale pour les établissements gérés par les utilisateurs.",
           subsections: [
             {
               id: "search-flow",
@@ -52,7 +52,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
             {
               id: "frontend-tech",
               title: "Frontend",
-              content: "Next.js 16 (React 19), TypeScript, Tailwind CSS 4, Leaflet (Cartographie), Zod (Validation), React Hook Form."
+              content: "Next.js 16 (React 19), TypeScript, Tailwind CSS 4, Google Maps (Cartographie), Zod (Validation), React Hook Form."
             },
             {
               id: "backend-tech",
@@ -75,7 +75,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
 │  (Navigateur - Application React Next.js)       │
 │  - Composants UI                                │
 │  - Gestion d'état (React Hooks/Context)         │
-│  - Visualisation cartographique (Leaflet)       │
+│  - Visualisation cartographique (Google Maps)   │
 └────────────┬────────────────────────────────────┘
              │ HTTP/REST
              ▼
@@ -84,7 +84,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
 │          (API Backend Express.js)               │
 │  - Validation des requêtes (Zod)                │
 │  - Logique métier (Repositories)                │
-│  - Proxy API Overpass (OpenStreetMap)           │
+│  - Proxy API Google Places (Google Maps)        │
 └────────────┬────────────────────────────────────┘
              │ SQL
              ▼
@@ -141,7 +141,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
         {
           id: "concept",
           title: "Concept & Usage",
-          content: "The application relies on two data sources: the Overpass API (OpenStreetMap) for real-time public data, and a local PostgreSQL database for user-managed facilities.",
+          content: "The application relies on two data sources: the Google Places API (Google Maps) for real-time public data, and a local PostgreSQL database for user-managed facilities.",
           subsections: [
             {
               id: "search-flow",
@@ -168,7 +168,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
             {
               id: "frontend-tech",
               title: "Frontend",
-              content: "Next.js 16 (React 19), TypeScript, Tailwind CSS 4, Leaflet (Mapping), Zod (Validation), React Hook Form."
+              content: "Next.js 16 (React 19), TypeScript, Tailwind CSS 4, Google Maps (Mapping), Zod (Validation), React Hook Form."
             },
             {
               id: "backend-tech",
@@ -191,7 +191,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
 │  (Browser - Next.js React Application)          │
 │  - UI Components                                │
 │  - State Management (React Hooks/Context)       │
-│  - Map Visualization (Leaflet)                  │
+│  - Map Visualization (Google Maps)              │
 └────────────┬────────────────────────────────────┘
              │ HTTP/REST
              ▼
@@ -200,7 +200,7 @@ export const docsContent: Record<"fr" | "en", DocCategory[]> = {
 │        (Express.js Backend API)                 │
 │  - Request validation (Zod)                     │
 │  - Business logic (Repositories)                │
-│  - Overpass API Proxy (OpenStreetMap)           │
+│  - Google Places API Proxy (Google Maps)        │
 └────────────┬────────────────────────────────────┘
              │ SQL
              ▼

@@ -39,7 +39,7 @@ export interface OverpassElement {
     tags?: Record<string, string>;
 }
 
-// Overpass API type mapping - keys are internal, values are OSM amenity types
+// Facility type mapping - internal keys for UI filtering
 export const FACILITY_TYPE_KEYS = ["hospital", "clinic", "doctor", "pharmacy", "laboratory"] as const;
 export type FacilityTypeKey = typeof FACILITY_TYPE_KEYS[number];
 

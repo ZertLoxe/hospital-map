@@ -121,13 +121,13 @@
     "yourSearchPosition": "Votre position de recherche",
     "manage": "Gérer cet établissement",
     "getDirections": "Obtenir l'itinéraire",
-    "verifyOnOSM": "Vérifier sur OpenStreetMap"
+    "viewOnGoogleMaps": "Voir sur Google Maps"
   },
   "toast": {
     "referencePoint": "Point de référence",
     "searchInProgress": "Recherche en cours...",
     "noFacilitiesFound": "Aucun établissement trouvé dans cette zone",
-    "facilitiesFound": "établissement(s) trouvé(s) sur OpenStreetMap",
+    "facilitiesFound": "établissement(s) trouvé(s) sur Google Maps",
     "searchError": "Erreur lors de la recherche. Réessayez.",
     "selectFacility": "Veuillez sélectionner un établissement comme point de référence",
     "loadError": "Impossible de charger les établissements",

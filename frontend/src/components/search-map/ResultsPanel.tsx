@@ -273,7 +273,7 @@ export default function ResultsPanel({
                                             {t.results.directions}
                                         </a>
                                         <a
-                                            href={`https://www.openstreetmap.org/node/${facility.id}`}
+                                            href={`https://www.google.com/maps/place/?q=place_id:${facility.id}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-xs text-secondary hover:underline"

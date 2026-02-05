@@ -110,13 +110,13 @@
     "yourSearchPosition": "Your search position",
     "manage": "Manage this facility",
     "getDirections": "Get directions",
-    "verifyOnOSM": "Verify on OpenStreetMap"
+    "viewOnGoogleMaps": "View on Google Maps"
   },
   "toast": {
     "referencePoint": "Reference point",
     "searchInProgress": "Search in progress...",
     "noFacilitiesFound": "No facilities found in this area",
-    "facilitiesFound": "facility(ies) found on OpenStreetMap",
+    "facilitiesFound": "facility(ies) found on Google Maps",
     "searchError": "Search error. Please try again.",
     "selectFacility": "Please select a facility as reference point",
     "loadError": "Unable to load facilities",

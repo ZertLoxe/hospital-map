@@ -162,7 +162,7 @@ export default function SearchMap() {
         throw new Error(result.error || "Google Places API request failed");
       }
 
-      const facilities = parseGooglePlacesResponse(result.data as any, point, t);
+      let facilities = parseGooglePlacesResponse(result.data as any, point, t, selectedTypes);
 
       const typesKey = selectedTypes.length > 0 ? [...selectedTypes].sort().join("|") : "all";
       const searchKey = `${point.lat.toFixed(6)}|${point.lng.toFixed(6)}|${typesKey}`;
@@ -382,7 +382,7 @@ export default function SearchMap() {
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline text-xs"
                   >
-                    🔍 View on Google Maps
+                    🔍 {t.map.viewOnGoogleMaps}
                   </a>
                 </div>
               </div>
