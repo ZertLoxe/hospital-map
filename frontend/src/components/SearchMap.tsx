@@ -147,6 +147,12 @@ export default function SearchMap() {
         setIsLoading(false);
         return;
       }
+      // Validate that at least one facility type is selected
+      if (selectedTypes.length === 0) {
+        toast.error(t.toast.selectAtLeastOneType);
+        setIsLoading(false);
+        return;
+      }
       // Convert radius to meters for Google Places API
       const radiusMeters = searchRadius * 1000;
       
@@ -162,14 +168,14 @@ export default function SearchMap() {
         throw new Error(result.error || "Google Places API request failed");
       }
 
-      let facilities = parseGooglePlacesResponse(result.data as any, point, t, selectedTypes);
+      const facilities = parseGooglePlacesResponse(result.data as any, point, t, selectedTypes);
 
       const typesKey = selectedTypes.length > 0 ? [...selectedTypes].sort().join("|") : "all";
       const searchKey = `${point.lat.toFixed(6)}|${point.lng.toFixed(6)}|${typesKey}`;
 
       let effectiveResults = facilities;
 
-      if (lastSearchKey === searchKey && lastSearchRadius !== null && searchRadius >= lastSearchRadius) {
+      if (lastSearchKey === searchKey && lastSearchRadius !== null && searchRadius > lastSearchRadius) {
         const merged = new Map<string, MedicalFacility>();
         lastSearchResults.forEach((item) => merged.set(item.id, item));
         facilities.forEach((item) => merged.set(item.id, item));
@@ -241,7 +247,8 @@ export default function SearchMap() {
         return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200";
       case "doctor":
       case "clinic":
-        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+        // Light blue background with dark blue text for better contrast (apply same in all themes)
+        return "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E0E7FF] text-[#1E3A8A]";
       case "hospital":
         return "px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full whitespace-nowrap";
       case "laboratory":

@@ -5,7 +5,7 @@ import type { Translations } from "@/contexts/LanguageContext";
 // Google Places API type mapping
 const GOOGLE_PLACES_TYPE_MAP: Record<FacilityTypeKey, string[]> = {
     hospital: ['hospital'],
-    clinic: ['doctor', 'physiotherapist', 'health'],
+    clinic: ['hospital', 'doctor', 'physiotherapist', 'health'],
     doctor: ['doctor', 'dentist'],
     pharmacy: ['pharmacy', 'drugstore'],
     laboratory: ['health'],
@@ -138,72 +138,83 @@ function getGoogleTypesToSearch(types: FacilityTypeKey[]): string[] {
 
 // Parse Google Places type to our FacilityTypeKey
 export function parseGooglePlaceType(types: string[], name: string = '', address: string = ''): FacilityTypeKey | 'other' {
-    const nameLower = name.toLowerCase();
-    const addressLower = address.toLowerCase();
+    const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const nameLower = normalize(name);
+    const addressLower = normalize(address);
     const combinedText = `${nameLower} ${addressLower}`;
 
-    // 1. HARD EXCLUSIONS - Definitely not medical
-    const NON_MEDICAL_TYPES = [
+    // STEP 1: Check for OBVIOUS non-medical Google types first
+    const OBVIOUS_NON_MEDICAL = [
         'place_of_worship', 'mosque', 'church', 'synagogue', 'temple',
-        'restaurant', 'cafe', 'bar', 'food', 'meal_delivery', 'meal_takeaway',
-        'store', 'clothing_store', 'grocery_or_supermarket', 'supermarket',
-        'shopping_mall', 'bakery', 'bank', 'atm', 'gas_station',
-        'car_repair', 'car_dealer', 'parking', 'lodging', 'hotel',
-        'school', 'university', 'library', 'post_office', 'stadium'
+        'restaurant', 'cafe', 'bar', 'meal_delivery', 'meal_takeaway',
+        'school', 'university', 'library', 'stadium', 'park'
     ];
     
-    // Check if any Google type is definitely non-medical
-    if (types.some(type => NON_MEDICAL_TYPES.includes(type))) {
+    if (types.some(type => OBVIOUS_NON_MEDICAL.includes(type))) {
         return 'other';
     }
 
-    // 2. KEYWORD EXCLUSIONS (Both Name and Address-like fields)
-    const EXCLUSION_KEYWORDS = [
-        'mosquée', 'mosque', 'masjid', 'مسجد', 'zawiya', 'zaouïa',
-        'église', 'church', 'synagogue', 'temple',
-        'droguerie', 'drogrie', 'drogries', 'drogue', 'hardware', 'quincaillerie', 'visserie',
-        'restaurant', 'café', 'pizzeria', 'snack', 'food', 'grill',
-        'épicerie', 'supermarché', 'supermarket', 'market', 'marché',
-        'banque', 'bank', 'assurance', 'insurance', 'école', 'school',
-        'hôtel', 'hotel', 'café', 'complexe', 'résidence', 'residence'
+    // STEP 2: Check for OBVIOUS non-medical keywords in NAME or ADDRESS
+    const NON_MEDICAL_KEYWORDS = [
+        'mosquee', 'mosque', 'masjid', 'masjed', 'zawiya', 'zaouia', 'taouba', 'touba', 'jamaa', 'جامع',
+        'eglise', 'church', 'synagogue', 'temple',
+        'restaurant', 'pizzeria', 'snack', 'cafe', 'coffee'
     ];
-
-    if (EXCLUSION_KEYWORDS.some(k => combinedText.includes(k))) {
-        return 'other';
+    
+    // If name or address contains a non-medical keyword, mark as 'other' UNLESS it also contains a medical keyword
+    if (NON_MEDICAL_KEYWORDS.some(k => combinedText.includes(k))) {
+        // Exception: If it's explicitly named a pharmacy or clinic despite the location keyword (e.g. "Pharmacie de la Mosquée")
+        const MEDICAL_OVERRIDE = ['pharmacie', 'pharmacy', 'clinique', 'clinic', 'laboratoire', 'laboratory', 'docteur', 'doctor', 'medical', 'sante'];
+        if (!MEDICAL_OVERRIDE.some(m => nameLower.includes(m))) {
+            return 'other';
+        }
     }
     
-    // 3. POSITIVE IDENTIFICATION
-    // Priority 1: Hospital
+    // STEP 3: POSITIVE MEDICAL IDENTIFICATION (trust Google's medical tags)
+    
+    // Priority 1: CLINIC/CLINIQUE by name
+    // Important: We check this FIRST because many private clinics are tagged as 'hospital' or 'doctor' by Google.
+    if (nameLower.includes('clinique') || nameLower.includes('clinic') ||
+        nameLower.includes('polyclinique') || 
+        (nameLower.includes('centre') && (nameLower.includes('médical') || nameLower.includes('santé')))) {
+        return 'clinic';
+    }
+
+    // Priority 2: Hospital (trust Google)
     if (types.includes('hospital')) return 'hospital';
     
-    // Priority 2: Pharmacy (Explicit Google type)
+    // Priority 3: Pharmacy - Trust Google but exclude drogueries
     if (types.includes('pharmacy') || types.includes('drugstore')) {
-        // Double check it's not a hardware drug store (droguerie) mislabeled by Google
-        if (combinedText.includes('drogue')) return 'other';
+        // Only exclude if the NAME clearly indicates it's a hardware store (droguerie)
+        if (nameLower.includes('droguerie') || nameLower.includes('quincaillerie')) {
+            return 'other';
+        }
         return 'pharmacy';
     }
     
-    // Priority 3: Check for pharmacy in name/address
-    if (combinedText.includes('pharmacie') || combinedText.includes('pharmacy') || combinedText.includes('صيدلية')) {
+    // Priority 4: Pharmacy by name (explicit pharmacy keywords)
+    if (nameLower.includes('pharmacie') || nameLower.includes('pharmacy') || nameLower.includes('صيدلية')) {
         return 'pharmacy';
     }
     
-    // Priority 4: Laboratory based on name
+    // Priority 5: Laboratory
     if (nameLower.includes('laboratoire') || nameLower.includes('laboratory') || 
-        combinedText.includes('analyse') || combinedText.includes('lab ')) {
+        nameLower.includes('analyse') || nameLower.includes('lab ')) {
         return 'laboratory';
     }
     
-    // Priority 5: Doctors/dentists
-    if (types.includes('doctor') || types.includes('dentist')) return 'doctor';
-    
-    // Priority 6: Clinic/medical office
-    if (types.includes('health') || types.includes('physiotherapist')) {
-        if (combinedText.includes('clinique') || combinedText.includes('clinic') ||
-            combinedText.includes('centre') || combinedText.includes('center') ||
-            combinedText.includes('polyclinique')) {
-            return 'clinic';
+    // Priority 6: Doctors/Dentists (trust Google)
+    if (types.includes('doctor') || types.includes('dentist')) {
+        // Only exclude if name suggests non-medical
+        if (nameLower.includes('banque') || nameLower.includes('assurance') || 
+            nameLower.includes('hôtel') || nameLower.includes('école')) {
+            return 'other';
         }
+        return 'doctor';
+    }
+    
+    // Priority 7: health/physiotherapist (fallback to doctor)
+    if (types.includes('health') || types.includes('physiotherapist')) {
         return 'doctor';
     }
     
@@ -241,12 +252,13 @@ export function parseGooglePlacesResponse(
 ): MedicalFacility[] {
     if (!data.results) return [];
     const allowedSet = new Set(allowedTypes);
+    const results: MedicalFacility[] = [];
 
-    return data.results
+    data.results
         .filter((place: any) => {
             return place.geometry && place.geometry.location;
         })
-        .map((place: any) => {
+        .forEach((place: any) => {
             const lat = place.geometry.location.lat;
             const lng = place.geometry.location.lng;
             const distance = calculateDistance(point.lat, point.lng, lat, lng);
@@ -256,9 +268,28 @@ export function parseGooglePlacesResponse(
             const placeType = parseGooglePlaceType(types, placeName, placeAddress);
             const specialty = determineSpecialty(types, placeName);
 
-            return {
+            // Fuzzy DUPLICATE DETECTION:
+            // Check if we already have a similar facility within a very small radius (30 meters)
+            const isDuplicate = results.some(existing => {
+                const samePos = calculateDistance(existing.lat, existing.lng, lat, lng) < 0.03; // 30 meters
+                if (samePos) {
+                    const normalizeName = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/pharmacie|clinique|dr\.|doctor|medical/g, '').trim();
+                    const n1 = normalizeName(existing.name);
+                    const n2 = normalizeName(placeName);
+                    // If names are very similar, or one is a subset of the other
+                    return n1.includes(n2) || n2.includes(n1) || (n1.length > 3 && n2.length > 3 && (n1.startsWith(n2) || n2.startsWith(n1)));
+                }
+                return false;
+            });
+
+            if (isDuplicate) {
+                console.log(`🔍 Skipping likely duplicate: "${placeName}" (Matched with existing result nearby)`);
+                return;
+            }
+
+            results.push({
                 id: place.place_id,
-                name: place.name || t.results.unnamed,
+                name: placeName || t.results.unnamed,
                 type: placeType,
                 lat,
                 lng,
@@ -270,8 +301,10 @@ export function parseGooglePlacesResponse(
                 wheelchair: place.wheelchair_accessible_entrance ? 'yes' : undefined,
                 emergency: types.includes('emergency') || place.name?.toLowerCase().includes('urgence'),
                 specialty,
-            };
-        })
+            });
+        });
+
+    return results
         .filter((facility) => {
             if (allowedSet.size === 0) return true;
             return allowedSet.has(facility.type as FacilityTypeKey);

@@ -26,6 +26,7 @@
     "facilityTypes": "Facility types",
     "allTypes": "All types will be searched",
     "typesSelected": "type(s) selected",
+    "selectAtLeastOne": "Please select at least one facility type",
     "searchButton": "Search",
     "searching": "Searching...",
     "quickFilters": {
@@ -119,6 +120,7 @@
     "facilitiesFound": "facility(ies) found on Google Maps",
     "searchError": "Search error. Please try again.",
     "selectFacility": "Please select a facility as reference point",
+    "selectAtLeastOneType": "Please select at least one facility type to search",
     "loadError": "Unable to load facilities",
     "hospitalSaved": "Clinic saved!",
     "saveError": "Error saving data.",

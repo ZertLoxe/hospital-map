@@ -26,6 +26,7 @@
     "facilityTypes": "Types d'établissements",
     "allTypes": "Tous les types seront recherchés",
     "typesSelected": "type(s) sélectionné(s)",
+    "selectAtLeastOne": "Veuillez sélectionner au moins un type d'établissement",
     "searchButton": "Rechercher",
     "searching": "Recherche en cours...",
     "quickFilters": {
@@ -130,6 +131,7 @@
     "facilitiesFound": "établissement(s) trouvé(s) sur Google Maps",
     "searchError": "Erreur lors de la recherche. Réessayez.",
     "selectFacility": "Veuillez sélectionner un établissement comme point de référence",
+    "selectAtLeastOneType": "Veuillez sélectionner au moins un type d'établissement pour rechercher",
     "loadError": "Impossible de charger les établissements",
     "hospitalSaved": "Clinique enregistrée !",
     "saveError": "Erreur lors de l'enregistrement.",

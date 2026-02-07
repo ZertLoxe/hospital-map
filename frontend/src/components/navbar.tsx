@@ -82,7 +82,7 @@ export default function Navbar() {
           <span className="text-sm font-semibold">{language.toUpperCase()}</span>
         </button>
 
-        <Link
+        {/* <Link
           href="/docs"
           className="cursor-pointer hover:text-primary transition-colors p-1"
           aria-label={t.nav.docs}
@@ -101,7 +101,7 @@ export default function Navbar() {
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
           </svg>
-        </Link>
+        </Link> */}
 
         {/* Theme Toggle Button */}
         <button

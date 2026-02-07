@@ -149,29 +149,30 @@ export default function ResultsPanel({
                         />
                     </div>
                 </div>
-                {/* Quick Filters */}
-                <div className="px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-2 sticky top-0 z-10 backdrop-blur-sm items-center">
+                {/* Quick Filters - Always visible, but state changes based on results */}
+                <div className={`px-6 py-4 border-b border-muted bg-surface flex flex-wrap gap-2 sticky top-0 z-10 backdrop-blur-sm items-center transition-opacity duration-300 ${filteredResults.length === 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
                     {/* Helper to render filter buttons */}
                     {filterOptions.map((filterType) => (
                         <button
                             key={filterType}
                             type="button"
                             onClick={() => setQuickFilter(filterType as QuickFilterType)}
-                            className={`px-4 py-2 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${quickFilter === filterType
+                            disabled={filteredResults.length === 0}
+                            className={`px-4 py-2 rounded-full border text-xs font-medium transition-colors whitespace-nowrap ${quickFilter === filterType && filteredResults.length > 0
                                 ? 'bg-primary/10 text-primary border-primary'
                                 : 'bg-surface text-gray-600 border-muted hover:border-primary hover:bg-primary/5 hover:text-primary'
-                                }`}
+                                } ${filteredResults.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                             {t.search.quickFilters[filterType as keyof typeof t.search.quickFilters] || filterType}
                         </button>
                     ))}
 
-                    {showSpecialtyDropdown && (
+                    {showSpecialtyDropdown && filteredResults.length > 0 && (
                         <div className="ml-auto">
                             <select
                                 value={selectedSpecialty}
                                 onChange={(e) => setSelectedSpecialty(e.target.value)}
-                                className="px-5 py-4 bg-surface-container text-primary font-bold border border-muted rounded-lg text-sm focus:ring-primary/20 outline-none cursor-pointer"
+                                className="mt-2 px-4 py-3 bg-surface-container text-primary font-bold border border-muted rounded-lg text-sm focus:ring-primary/20 outline-none cursor-pointer"
                             >
                                 <option value="all">Toutes les spécialités</option>
                                 {availableSpecialties.map(specialty => (

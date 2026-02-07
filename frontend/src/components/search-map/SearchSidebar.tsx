@@ -202,14 +202,14 @@ export default function SearchSidebar({
                                 </label>
                             ))}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            {selectedTypes.length === 0 ? t.search.allTypes : `${selectedTypes.length} ${t.search.typesSelected}`}
+                        <p className={`text-xs mt-2 ${selectedTypes.length === 0 ? 'text-amber-700 font-medium' : 'text-muted-foreground'}`}>
+                            {selectedTypes.length === 0 ? t.search.selectAtLeastOne : `${selectedTypes.length} ${t.search.typesSelected}`}
                         </p>
                     </fieldset>
                     {/* Search Button */}
                     <button type="button"
                         onClick={onSearch}
-                        disabled={isLoading}
+                        disabled={isLoading || selectedTypes.length === 0}
                         className="w-full py-3 bg-primary text-on-primary font-semibold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isLoading ? (
@@ -230,7 +230,7 @@ export default function SearchSidebar({
                         )}
                     </button>
                      {/* Map Legend */}
-                        <div className="mt-6 pt-6 border-t border-muted">
+                        {/* <div className="mt-6 pt-6 border-t border-muted">
                             <h4 className="text-lg font-semibold text-muted-foreground uppercase mb-3 tracking-wider">{t.search.legend?.title || "Légende"}</h4>
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
@@ -246,7 +246,7 @@ export default function SearchSidebar({
                                     <span className="text-sm text-foreground font-medium">{t.search.legend?.study || "En Étude"}</span>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                 </div>
 
             </div>
